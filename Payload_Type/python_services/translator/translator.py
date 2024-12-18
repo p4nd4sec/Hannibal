@@ -467,6 +467,8 @@ class hannibal_python_translator(TranslationContainer):
             data += struct.pack('<B', 1)
         else:
             data += struct.pack('<B', 0)
+        
+        return data
 
     def serialize_init_file_download(self, json_object):
 
