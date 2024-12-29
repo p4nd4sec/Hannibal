@@ -1,7 +1,5 @@
 # Generates a fully position independent .bin
 
-# TODO: Get header change tracking working. For now if you change headers you will need to clean and rebuild.
-
 #---------- Performance  ----------#
 
 # First build is the longest, after that it's incremental.
@@ -31,6 +29,8 @@ CFLAGS += -falign-labels=1 -fPIC
 CFLAGS += -Iinclude -masm=intel -fpermissive -mrdrnd
 CFLAGS += -D PIC_BUILD -D PROFILE_MYTHIC_HTTP
 
+DEPFLAGS = -MT $@ -MMD -MP -MF $(DEP_DIR)/$(*F).d
+
 #---------- Linker Flags  ----------#
 
 LDFLAGS := -Wl,-Tscripts/Linker.ld
@@ -42,8 +42,10 @@ ASM_DIR := asm/x64
 SRC_DIR := src
 OBJ_DIR := bin/obj
 BIN_DIR := bin
+DEP_DIR := $(BIN_DIR)/deps
 SRC_FILES := $(wildcard $(SRC_DIR)/*.c)
 OBJ_FILES := $(SRC_FILES:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+DEP_FILES := $(SRC_FILES:$(SRC_DIR)/%.c=$(DEP_DIR)/%.d)
 ASM_FILES := $(wildcard $(ASM_DIR)/*.asm)
 ASM_OBJ_FILES := $(ASM_FILES:asm/x64/%.asm=bin/obj/%.o)
 
@@ -63,13 +65,18 @@ $(BIN_DIR)/$(PROJECT).exe: $(ASM_OBJ_FILES) $(OBJ_FILES)
 	@rm -f "$(BIN_DIR)\$(PROJECT).exe"
 	@rm -rf bin/obj/*.o 
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	@echo "[+] Compiling $? -> $@"
-	@ $(CC_X64) -o $@ -c  $? $(CFLAGS) $(LDFLAGS)
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(DEP_DIR)/%.d | $(DEP_DIR)
+	@echo "[+] Compiling $< -> $@"
+	@ $(CC_X64) -o $@ -c  $< $(DEPFLAGS) $(CFLAGS) $(LDFLAGS)
 
 $(ASM_OBJ_FILES): $(OBJ_DIR)/%.o: asm/x64/%.asm
 	@echo "[+] Assembling $? -> $@"
 	@ nasm -f win64 $? -o $@
+
+$(DEP_DIR): ; @mkdir -p $@
+$(DEP_FILES):
+
+-include $(DEP_FILES)
 
 #---------- Utility ----------#
 
@@ -77,6 +84,7 @@ clean:
 	@rm -rf bin/obj/*.o 
 	@rm -rf bin/obj/*.s
 	@rm -rf bin/obj/*.ii
+	@rm -rf $(DEP_DIR)
 	@rm -rf bin/*.bin
 	@rm -rf bin/*.exe
 
