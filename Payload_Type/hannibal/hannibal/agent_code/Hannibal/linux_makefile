@@ -93,4 +93,4 @@ print:
 	@echo "OBJ_FILES: $(OBJ_FILES)"
 	@echo "DEP_FILES: $(DEP_FILES)"
 	@echo "ASM_FILES: $(ASM_FILES)"
-	@echo "ASM_OBJ_FILES": $(ASM_OBJ_FILES)"
+	@echo "ASM_OBJ_FILES: $(ASM_OBJ_FILES)"
