@@ -162,6 +162,9 @@ typedef struct _INSTANCE {
         PTR_OF_TYPE( GetVolumeInformationW )
         PTR_OF_TYPE( CreateToolhelp32Snapshot )
         PTR_OF_TYPE( NtSetInformationVirtualMemory )
+        PTR_OF_TYPE( HeapAlloc )
+        PTR_OF_TYPE( HeapFree )
+        PTR_OF_TYPE( GetProcessHeap )
         
 
         // User32.dll
