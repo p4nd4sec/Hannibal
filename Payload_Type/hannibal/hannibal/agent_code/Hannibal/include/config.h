@@ -36,5 +36,5 @@
 #define INCLUDE_CMD_HOSTNAME
 #define INCLUDE_CMD_PS
 #define INCLUDE_CMD_EXECUTE_HBIN
-
+#define INCLUDE_CMD_BOF
 #endif
