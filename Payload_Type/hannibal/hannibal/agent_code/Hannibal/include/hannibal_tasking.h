@@ -134,8 +134,7 @@ typedef struct _CMD_EXECUTE_HBIN { // Agent > Controller
 typedef struct _CMD_BOF {
     LPVOID args;
     int arg_size;
-    LPVOID bof;
-    int bof_size;
+    PSTR path_bof;
 } CMD_BOF;
 #endif
 

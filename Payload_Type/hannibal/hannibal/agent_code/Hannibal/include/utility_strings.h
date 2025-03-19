@@ -63,10 +63,11 @@ int pic_strcmpW(const wchar_t *wstr1, const wchar_t *wstr2);
 int pic_strncmp(const char *s1, const char *s2, size_t n);
 
 char *pic_strncpy(char *dest, const char *src, size_t n);
-
+char *pic_strchr(const char *s, int c);
 void pic_strcat(char *str1, char *str2);
 void pic_strcatW(wchar_t *wstr1, wchar_t *wstr2);
-
+int pic_sprintf(char* dest, const char* format, ...);
+int pic_wsprintf(wchar_t* dest, const wchar_t* format, ...);
 void dword_to_wchar(DWORD value, WCHAR* buffer, int base);
 void ulong_to_wchar(ULONG64 value, WCHAR *buffer);
 

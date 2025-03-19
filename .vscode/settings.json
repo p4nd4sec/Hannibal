@@ -42,6 +42,7 @@
         "compare": "c",
         "type_traits": "c",
         "utility": "c",
-        "config.h": "c"
+        "config.h": "c",
+        "beaconapi.h": "c"
     }
 }

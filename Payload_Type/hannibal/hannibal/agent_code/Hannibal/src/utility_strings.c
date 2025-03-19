@@ -203,6 +203,250 @@ SECTION_CODE void pic_strcatW(wchar_t *wstr1, wchar_t *wstr2)
     *end = L'\0';
 }
 
+SECTION_CODE int pic_sprintf(char* dest, const char* format, ...) {
+    char* d = dest;
+    const char* f = format;
+    va_list args;
+    va_start(args, format);
+    
+    int chars_written = 0;
+    
+    // Process format string
+    while (*f) {
+        if (*f == '%') {
+            f++; // Move past '%'
+            
+            // Handle format specifiers
+            switch (*f) {
+                case 's': { // String
+                    char* s = va_arg(args, char*);
+                    while (*s) {
+                        *d++ = *s++;
+                        chars_written++;
+                    }
+                    break;
+                }
+                case 'd': { // Integer
+                    int num = va_arg(args, int);
+                    int is_neg = 0;
+                    
+                    // Handle negative numbers
+                    if (num < 0) {
+                        is_neg = 1;
+                        *d++ = '-';
+                        chars_written++;
+                        num = -num;
+                    }
+                    
+                    // Convert number to string (reversed)
+                    char digits[12]; // Large enough for 32-bit integer
+                    int i = 0;
+                    
+                    // Handle special case for 0
+                    if (num == 0) {
+                        digits[i++] = '0';
+                    } else {
+                        while (num > 0) {
+                            digits[i++] = '0' + (num % 10);
+                            num /= 10;
+                        }
+                    }
+                    
+                    // Copy digits in correct order
+                    while (i > 0) {
+                        *d++ = digits[--i];
+                        chars_written++;
+                    }
+                    break;
+                }
+                case 'c': { // Character
+                    char c = (char)va_arg(args, int);
+                    *d++ = c;
+                    chars_written++;
+                    break;
+                }
+                case 'x': { // Hexadecimal
+                    unsigned int num = va_arg(args, unsigned int);
+                    
+                    // Convert number to hex string (reversed)
+                    char digits[8]; // Large enough for 32-bit integer in hex
+                    int i = 0;
+                    
+                    // Handle special case for 0
+                    if (num == 0) {
+                        digits[i++] = '0';
+                    } else {
+                        while (num > 0) {
+                            int digit = num % 16;
+                            if (digit < 10)
+                                digits[i++] = '0' + digit;
+                            else
+                                digits[i++] = 'a' + (digit - 10);
+                            num /= 16;
+                        }
+                    }
+                    
+                    // Copy digits in correct order
+                    while (i > 0) {
+                        *d++ = digits[--i];
+                        chars_written++;
+                    }
+                    break;
+                }
+                case '%': { // Literal %
+                    *d++ = '%';
+                    chars_written++;
+                    break;
+                }
+                // Add more format specifiers as needed
+            }
+        } else {
+            *d++ = *f;
+            chars_written++;
+        }
+        f++;
+    }
+    
+    // Null-terminate the string
+    *d = '\0';
+    
+    va_end(args);
+    return chars_written;
+}
+
+SECTION_CODE int pic_wsprintf(wchar_t* dest, const wchar_t* format, ...) {
+    wchar_t* d = dest;
+    const wchar_t* f = format;
+    va_list args;
+    va_start(args, format);
+    
+    int chars_written = 0;
+    
+    // Process format string
+    while (*f) {
+        if (*f == L'%') {
+            f++; // Move past '%'
+            
+            // Handle format specifiers
+            switch (*f) {
+                case L's': { // Wide string
+                    wchar_t* s = va_arg(args, wchar_t*);
+                    while (*s) {
+                        *d++ = *s++;
+                        chars_written++;
+                    }
+                    break;
+                }
+                case L'S': { // ANSI string (special Windows wsprintf feature)
+                    char* s = va_arg(args, char*);
+                    while (*s) {
+                        *d++ = (wchar_t)*s++; // Convert to wide char
+                        chars_written++;
+                    }
+                    break;
+                }
+                case L'd': { // Integer
+                    int num = va_arg(args, int);
+                    int is_neg = 0;
+                    
+                    // Handle negative numbers
+                    if (num < 0) {
+                        is_neg = 1;
+                        *d++ = L'-';
+                        chars_written++;
+                        num = -num;
+                    }
+                    
+                    // Convert number to string (reversed)
+                    wchar_t digits[12]; // Large enough for 32-bit integer
+                    int i = 0;
+                    
+                    // Handle special case for 0
+                    if (num == 0) {
+                        digits[i++] = L'0';
+                    } else {
+                        while (num > 0) {
+                            digits[i++] = L'0' + (num % 10);
+                            num /= 10;
+                        }
+                    }
+                    
+                    // Copy digits in correct order
+                    while (i > 0) {
+                        *d++ = digits[--i];
+                        chars_written++;
+                    }
+                    break;
+                }
+                case L'c': { // Wide character
+                    wchar_t c = (wchar_t)va_arg(args, int);
+                    *d++ = c;
+                    chars_written++;
+                    break;
+                }
+                case L'C': { // ANSI character (special Windows wsprintf feature)
+                    char c = (char)va_arg(args, int);
+                    *d++ = (wchar_t)c; // Convert to wide char
+                    chars_written++;
+                    break;
+                }
+                case L'x': { // Hexadecimal
+                    unsigned int num = va_arg(args, unsigned int);
+                    
+                    // Convert number to hex string (reversed)
+                    wchar_t digits[8]; // Large enough for 32-bit integer in hex
+                    int i = 0;
+                    
+                    // Handle special case for 0
+                    if (num == 0) {
+                        digits[i++] = L'0';
+                    } else {
+                        while (num > 0) {
+                            int digit = num % 16;
+                            if (digit < 10)
+                                digits[i++] = L'0' + digit;
+                            else
+                                digits[i++] = L'a' + (digit - 10);
+                            num /= 16;
+                        }
+                    }
+                    
+                    // Copy digits in correct order
+                    while (i > 0) {
+                        *d++ = digits[--i];
+                        chars_written++;
+                    }
+                    break;
+                }
+                case L'%': { // Literal %
+                    *d++ = L'%';
+                    chars_written++;
+                    break;
+                }
+                // Add more format specifiers as needed
+            }
+        } else {
+            *d++ = *f;
+            chars_written++;
+        }
+        f++;
+    }
+    
+    // Null-terminate the string
+    *d = L'\0';
+    
+    va_end(args);
+    return chars_written;
+}
+
+SECTION_CODE char* pic_strchr(const char *s, int c){
+    while (*s != (char)c) {
+        if (!*s++) {
+            return 0;
+        }
+    }
+    return (char *)s;
+}
 // Helper function to convert DWORD to WCHAR string
 SECTION_CODE void dword_to_wchar(DWORD value, WCHAR* buffer, int base) 
 {

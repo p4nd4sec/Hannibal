@@ -138,7 +138,9 @@ typedef struct _INSTANCE {
         PTR_OF_TYPE( GetProcAddress )
         PTR_OF_TYPE( GetFileAttributesW )
         PTR_OF_TYPE( CreateFileW )
+        PTR_OF_TYPE( CreateFileA )
         PTR_OF_TYPE( GetFileSizeEx )
+        PTR_OF_TYPE( GetFileSize )
         PTR_OF_TYPE( SetFilePointer )
         PTR_OF_TYPE( ReadFile )
         PTR_OF_TYPE( CloseHandle )
@@ -165,8 +167,8 @@ typedef struct _INSTANCE {
         PTR_OF_TYPE( HeapAlloc )
         PTR_OF_TYPE( HeapFree )
         PTR_OF_TYPE( GetProcessHeap )
-        
-
+        PTR_OF_TYPE( GetModuleHandleA )
+        PTR_OF_TYPE (RtlSecureZeroMemory)
         // User32.dll
         PTR_OF_TYPE( MessageBoxA )
         PTR_OF_TYPE( MessageBoxW )
