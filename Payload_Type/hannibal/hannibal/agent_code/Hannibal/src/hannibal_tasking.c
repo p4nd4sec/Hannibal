@@ -165,6 +165,9 @@ SECTION_CODE void init_task_ptrs()
 #ifdef INCLUDE_CMD_AGENTINFO
         {.cmd_id = CMD_AGENTINFO_MESSAGE, .cmd_ptr = FUNC_OFFSET(cmd_agentinfo)},    
 #endif
+#ifdef INCLUDE_CMD_EXECUTE_BOF
+        {.cmd_id = CMD_EXECUTE_BOF, .cmd_ptr = FUNC_OFFSET(cmd_bof)},
+#endif
     };
 
     hannibal_instance_ptr->tasks.task_func_ptrs_size = sizeof(task_ptrs)/sizeof(TASK_ENTRY);

