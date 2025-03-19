@@ -10,13 +10,13 @@ class ExecuteBofArguments(TaskArguments):
                 name="path",
                 type=ParameterType.String,
                 description="I think it is some sort of path...", #@p4nd4sec help me have a better description :D
-                parameter_group_info=ParameterGroupInfo(required=True)
+                parameter_group_info=[ParameterGroupInfo(required=True)]
             ),
             CommandParameter(
                 name="arguments",
                 type=ParameterType.String,
                 description="I think it is arguments..", #@p4nd4sec help me have a better description :D
-                parameter_group_info=ParameterGroupInfo(required=False)
+                parameter_group_info=[ParameterGroupInfo(required=False)]
             )
         ]
         
