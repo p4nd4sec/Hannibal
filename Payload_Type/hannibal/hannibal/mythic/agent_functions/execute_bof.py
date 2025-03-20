@@ -5,51 +5,111 @@ class ExecuteBofArguments(TaskArguments):
     def __init__(self, command_line, **kwargs): 
         super().__init__(command_line, **kwargs)
         
-        self.args = [ 
+        self.args = [
             CommandParameter(
-                name="path",
-                cli_name="path",
-                display_name="Path to execute.",
-                type=ParameterType.String,
-                description="Path to execute.",
+                name="bof",
+                type=ParameterType.File,
+                description="Upload BoF file to be executed. Be aware a UINT32 cannot be > 4294967295.",
+                parameter_group_info=[
+                    ParameterGroupInfo(
+                        required=True,
+                        ui_position=0,
+                        )
+                    ],
+            ),
+            CommandParameter(
+                name="bof_arguments",
+                cli_name="Arguments",
+                display_name="Arguments",
+                type=ParameterType.TypedArray,
+                default_value=[],
+                choices=["int32", "string", "wchar"], # TODO: Add base64 back and decode to support passing raw binary to hbins
+                description="""Arguments to pass to the BoF via the following way:
+                -i:123 or int32:123
+                -z:hello or string:hello
+                -Z:hello or wchar:hello
+                -b:abc== or base64:abc==""",
+                typedarray_parse_function=self.get_arguments,
                 parameter_group_info=[
                     ParameterGroupInfo(
                         required=False,
                         group_name="Default",
-                        ui_position=0
+                        ui_position=1
                     ),
                 ]),
         ]
         
+    async def get_arguments(self, arguments: PTRPCTypedArrayParseFunctionMessage) -> PTRPCTypedArrayParseFunctionMessageResponse:
+        argumentResponse = PTRPCTypedArrayParseFunctionMessageResponse(Success=True)
+        argumentSplitArray = []
+        
+        for argValue in arguments.InputArray:
+            argSplitResult = argValue.split(" ")
+            for spaceSplitArg in argSplitResult:
+                argumentSplitArray.append(spaceSplitArg)
+
+        hbin_arguments = []
+
+        for argument in argumentSplitArray:
+        
+            argType,value = argument.split(":",1)
+            value = value.strip("\'").strip("\"")
+        
+            if argType == "":
+                pass
+            elif argType == "int32" or argType == "-i":
+                hbin_arguments.append(["int32",int(value)])
+            elif argType == "string" or argType == "-z":
+                hbin_arguments.append(["string",value])
+            elif argType == "wchar" or argType == "-Z":
+                hbin_arguments.append(["wchar",value])
+            # elif argType == "base64" or argType == "-b":
+            #     hbin_arguments.append(["base64",value])
+            else:
+                return PTRPCTypedArrayParseFunctionMessageResponse(Success=False, Error=f"Failed to parse argument: {argument}: Unknown value type.")
+
+        argumentResponse = PTRPCTypedArrayParseFunctionMessageResponse(Success=True, TypedArray=hbin_arguments)
+        
+        return argumentResponse
+    
     async def parse_arguments(self):
         if len(self.command_line) > 0:
-            json_cmd = json.loads(self.command_line)
-            self.add_arg("path", json_cmd["path"])
-        if self.get_arg("path") is None:
-            self.add_arg("path", ".")
-        if self.get_arg("path") is not None and self.get_arg("path")[-1] == "\\":
-            self.add_arg("path", self.get_arg("path")[:-1])
-        
+            if self.command_line[0] == "{":
+                self.load_args_from_json_string(self.command_line)
         
 class ExecuteBofCommand(CommandBase):
     cmd = "execute_bof"
     needs_admin = False
-    help_cmd = "execute_bof path=C:\\\\path\\\\to\\\\file"
-    description = "execute_bof" #@p4nd4sec help me have a better description :D 
+    help_cmd = "execute_bof"
+    description = "Execute BoF file with arguments" #@p4nd4sec help me have a better description :D 
     version = 1
     author = "@p4nd4sec"
     argument_class = ExecuteBofArguments
     attackmapping = [] #ATT&CK Mapping @p4nd4sec map dj a zai
+    attributes = CommandAttributes(
+        load_only=False,
+        builtin=False,
+        supported_os=[SupportedOS.Windows],
+    )
 
     async def create_go_tasking(self, taskData: PTTaskMessageAllData) -> PTTaskCreateTaskingMessageResponse:
         response = PTTaskCreateTaskingMessageResponse(
             TaskID=taskData.Task.ID,
             Success=True,
         )
-        path = taskData.args.get_arg("path")
-        # arguments = taskData.args.get_arg("arguments")
-        # response.DisplayParams = f"Path: {path}, Arguments: {arguments}"
-        response.DisplayParams = f"Path: {path}"
+
+        fData = FileData()
+        fData.AgentFileId = taskData.args.get_arg("bof")
+        file = await SendMythicRPCFileGetContent(fData)
+
+        if file.Success:
+            taskData.args.add_arg("file_size", len(file.Content))
+            taskData.args.add_arg("raw", file.Content)
+        else:
+            raise Exception("Failed to get file contents: " + file.Error)
+
+        response.DisplayParams = ""
+
         return response
     
     async def process_response(self, task: PTTaskMessageAllData, response: any) -> PTTaskProcessResponseMessageResponse:
