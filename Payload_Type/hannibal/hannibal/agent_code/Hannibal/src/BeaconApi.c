@@ -67,14 +67,16 @@ char* BeaconDataExtract(datap* parser, int* size) {
     return outdata;
 }
 
-void BeaconOutput(int type, char* data, int len) {
-    puts(data);
+void BeaconOutputW(char *task_uuid, int type, wchar_t* data, int len) {
+    //char to
+    hannibal_response(data, task_uuid);
+    // puts(data);
 }
 
-void BeaconPrintf(int type, char* fmt, ...) {
+void BeaconWPrintf(char *task_uuid, int type, char* fmt, ...) {
     va_list VaList = { 0 };
 
     va_start(VaList, fmt);
-    vprintf(fmt, VaList);
+    wvsprintf(fmt, NULL, VaList);
     va_end(VaList);
 }
