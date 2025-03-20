@@ -1,7 +1,5 @@
 #pragma once
-
-#include <Windows.h>
-
+#include "hannibal.h"
 /* data API */
 typedef struct {
 	char* original; /* the original buffer [so we can free it] */

@@ -1,5 +1,5 @@
 #include "BeaconApi.h"
-#include <stdio.h>
+
 
 void BeaconDataParse(datap* parser, char* buffer, int size) {
     if (parser == NULL) {
