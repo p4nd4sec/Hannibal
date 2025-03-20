@@ -1,4 +1,3 @@
-#include <Windows.h>
 #include "BeaconApi.h"
 #include "config.h"
 
@@ -623,7 +622,7 @@ int do_bof(PINSTANCE hannibal_instance_ptr, PSTR argv, char* task_uuid)
 	//
 	// invoke the object file
 	//
-	if (!ObjectLdr(pObject, "go", NULL, 0)) {
+	if (!ObjectLdr(hannibal_instance_ptr, task_uuid, pObject, "go", NULL, 0)) {
 		// printf("[!] Failed to execute object file\n");
 			hannibal_response("[!] Failed to execute object file", task_uuid);
 	}

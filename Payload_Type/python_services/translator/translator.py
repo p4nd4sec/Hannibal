@@ -463,15 +463,16 @@ class hannibal_python_translator(TranslationContainer):
 
                 params = json.loads(task["parameters"])
 
+                # data += self.encode_uint8(self.TLV_CMD_EXECUTE_BOF_ARGS)
+                # unicode_len = len(self.encode_stringW(params["arguments"]))
+                # data += self.encode_uint32(unicode_len)
+                # data += self.encode_stringW(params["arguments"])
+
                 data += self.encode_uint8(self.TLV_CMD_EXECUTE_BOF_PATH)
                 unicode_len = len(self.encode_stringW(params["path"]))
                 data += self.encode_uint32(unicode_len)
                 data += self.encode_stringW(params["path"])
-
-                data += self.encode_uint8(self.TLV_CMD_EXECUTE_BOF_ARGS)
-                unicode_len = len(self.encode_stringW(params["arguments"]))
-                data += self.encode_uint32(unicode_len)
-                data += self.encode_stringW(params["arguments"])
+                
             # {'action': 'get_tasking', 'tasks': [{'timestamp': 1729031837, 'command': 'execute_hbin', 'parameters': '{"hbin": "a001aa77-dec8-4f33-9f08-d93f703dbf22", "hbin_arguments": [["wchar", "test"]], "file_size": "32768", "raw": "b\'VH\\\\x89\\\\xe6H\\\\x83\\\\xe4\\\\
             
 
