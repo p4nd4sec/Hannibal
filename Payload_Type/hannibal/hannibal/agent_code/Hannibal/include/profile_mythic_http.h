@@ -126,8 +126,9 @@ enum TLVType {
     TLV_CMD_SLEEP_JITTER = 46,
 
     // execute_bof
-    TLV_CMD_EXECUTE_BOF_ARGS = 47,
-    TLV_CMD_EXECUTE_BOF_PATH = 48,
+    TLV_CMD_EXECUTE_BOF_PATH = 47,
+    // TLV_CMD_EXECUTE_BOF_ARGS = 48,
+
 
 };
 

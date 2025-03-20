@@ -102,7 +102,7 @@ class hannibal_python_translator(TranslationContainer):
 
     # execute_bof
     TLV_CMD_EXECUTE_BOF_PATH = 47
-    TLV_CMD_EXECUTE_BOF_ARGS = 48
+    # TLV_CMD_EXECUTE_BOF_ARGS = 48
 
 
     #################################### CMD IDs
