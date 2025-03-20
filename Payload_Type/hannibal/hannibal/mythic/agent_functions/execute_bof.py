@@ -39,7 +39,7 @@ class ExecuteBofArguments(TaskArguments):
                 ]),
         ]
         
-    async def parse_arguments(self, arguments: PTRPCTypedArrayParseFunctionMessage) -> PTRPCTypedArrayParseFunctionMessageResponse:
+    async def get_arguments(self, arguments: PTRPCTypedArrayParseFunctionMessage) -> PTRPCTypedArrayParseFunctionMessageResponse:
         argumentResponse = PTRPCTypedArrayParseFunctionMessageResponse(Success=True)
         argumentSplitArray = []
         
