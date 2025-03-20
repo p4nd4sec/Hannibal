@@ -8,34 +8,33 @@ class ExecuteBofArguments(TaskArguments):
         self.args = [ 
             CommandParameter(
                 name="path",
+                cli_name="path",
+                display_name="Path to execute.",
                 type=ParameterType.String,
-                description="I think it is some sort of path...", #@p4nd4sec help me have a better description :D
-                parameter_group_info=[ParameterGroupInfo(required=True)]
-            ),
-            CommandParameter(
-                name="arguments",
-                type=ParameterType.String,
-                description="I think it is arguments..", #@p4nd4sec help me have a better description :D
-                parameter_group_info=[ParameterGroupInfo(required=False)]
-            )
+                description="Path to execute.",
+                parameter_group_info=[
+                    ParameterGroupInfo(
+                        required=False,
+                        group_name="Default",
+                        ui_position=0
+                    ),
+                ]),
         ]
         
     async def parse_arguments(self):
-        self.load_args_from_json_string(self.command_line)
-        if "path" not in self.command_line_json:
-            raise Exception("path is a required argument")
-        if "arguments" not in self.command_line_json:
-            self.add_arg("arguments", "")
-        else:
-            self.add_arg("arguments", self.command_line_json["arguments"])
-        self.add_arg("path", self.command_line_json["path"])
-        logger.debug(f"Arguments: {self.args}")
+        if len(self.command_line) > 0:
+            json_cmd = json.loads(self.command_line)
+            self.add_arg("path", json_cmd["path"])
+        if self.get_arg("path") is None:
+            self.add_arg("path", ".")
+        if self.get_arg("path") is not None and self.get_arg("path")[-1] == "\\":
+            self.add_arg("path", self.get_arg("path")[:-1])
         
         
 class ExecuteBofCommand(CommandBase):
     cmd = "execute_bof"
     needs_admin = False
-    help_cmd = "execute_bof path=C:\\\\path\\\\to\\\\file arguments=\"arg1 arg2 arg3\""
+    help_cmd = "execute_bof path=C:\\\\path\\\\to\\\\file"
     description = "execute_bof" #@p4nd4sec help me have a better description :D 
     version = 1
     author = "@p4nd4sec"
@@ -48,8 +47,9 @@ class ExecuteBofCommand(CommandBase):
             Success=True,
         )
         path = taskData.args.get_arg("path")
-        arguments = taskData.args.get_arg("arguments")
-        response.DisplayParams = f"Path: {path}, Arguments: {arguments}"
+        # arguments = taskData.args.get_arg("arguments")
+        # response.DisplayParams = f"Path: {path}, Arguments: {arguments}"
+        response.DisplayParams = f"Path: {path}"
         return response
     
     async def process_response(self, task: PTTaskMessageAllData, response: any) -> PTTaskProcessResponseMessageResponse:
