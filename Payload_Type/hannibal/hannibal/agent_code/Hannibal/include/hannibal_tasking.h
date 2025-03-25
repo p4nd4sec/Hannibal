@@ -123,10 +123,10 @@ typedef struct _CMD_DOWNLOAD { // Agent > Controller
 
 #ifdef INCLUDE_CMD_EXECUTE_HBIN
 typedef struct _CMD_EXECUTE_HBIN { // Agent > Controller
-     LPVOID args;
-     int arg_size;
-     LPVOID hbin;
-     int hbin_size;
+    LPVOID args;
+    int arg_size;
+    LPVOID hbin;
+    int hbin_size;
 } CMD_EXECUTE_HBIN;
 #endif
 
@@ -134,8 +134,8 @@ typedef struct _CMD_EXECUTE_HBIN { // Agent > Controller
 typedef struct _CMD_EXECUTE_BOF {
     LPVOID args;
     int arg_size;
-    PSTR path_bof;
-    int path_bof_size;
+    LPVOID bof;
+    int bof_size;
 } CMD_EXECUTE_BOF;
 #endif
 

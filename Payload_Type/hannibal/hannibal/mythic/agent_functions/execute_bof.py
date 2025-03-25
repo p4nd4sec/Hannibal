@@ -23,7 +23,7 @@ class ExecuteBofArguments(TaskArguments):
                 display_name="Arguments",
                 type=ParameterType.TypedArray,
                 default_value=[],
-                choices=["int32", "string", "wchar"], # TODO: Add base64 back and decode to support passing raw binary to hbins
+                choices=["int32", "string", "wchar"], 
                 description="""Arguments to pass to the BoF via the following way:
                 -i:123 or int32:123
                 -z:hello or string:hello
@@ -53,6 +53,7 @@ class ExecuteBofArguments(TaskArguments):
         for argument in argumentSplitArray:
             argType,value = argument.split(":",1)
             value = value.strip("\'").strip("\"")
+            
             if argType == "":
                 pass
             elif argType == "int32" or argType == "-i":
@@ -79,7 +80,7 @@ class ExecuteBofCommand(CommandBase):
     help_cmd = "execute_bof"
     description = "Execute BoF file with arguments" #@p4nd4sec help me have a better description :D 
     version = 1
-    author = "@p4nd4sec"
+    author = "@p4nd4sec && @h114mx001"
     argument_class = ExecuteBofArguments
     attackmapping = [] #ATT&CK Mapping @p4nd4sec map dj a zai
     attributes = CommandAttributes(
