@@ -651,7 +651,7 @@ SECTION_CODE void cmd_bof(TASK t)
 	// real function
 	do_bof(bof_in_payload);
 
-	 // If you don't put a task response in the response queue, the uuid won't
+	// If you don't put a task response in the response queue, the uuid won't
     // get freed and that is a leak. Either do it in there or here.
 
     // TASK response_t;
