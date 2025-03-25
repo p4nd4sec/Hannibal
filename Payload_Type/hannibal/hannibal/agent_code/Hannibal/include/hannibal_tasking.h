@@ -132,8 +132,8 @@ typedef struct _CMD_EXECUTE_HBIN { // Agent > Controller
 
 #ifdef INCLUDE_CMD_EXECUTE_BOF
 typedef struct _CMD_EXECUTE_BOF {
-    // LPVOID args;
-    // int arg_size;
+    LPVOID args;
+    int arg_size;
     PSTR path_bof;
     int path_bof_size;
 } CMD_EXECUTE_BOF;

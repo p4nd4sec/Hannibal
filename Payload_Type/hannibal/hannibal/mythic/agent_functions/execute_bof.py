@@ -48,27 +48,23 @@ class ExecuteBofArguments(TaskArguments):
             for spaceSplitArg in argSplitResult:
                 argumentSplitArray.append(spaceSplitArg)
 
-        hbin_arguments = []
+        bof_arguments = []
 
         for argument in argumentSplitArray:
-        
             argType,value = argument.split(":",1)
             value = value.strip("\'").strip("\"")
-        
             if argType == "":
                 pass
             elif argType == "int32" or argType == "-i":
-                hbin_arguments.append(["int32",int(value)])
+                bof_arguments.append(["int32",int(value)])
             elif argType == "string" or argType == "-z":
-                hbin_arguments.append(["string",value])
+                bof_arguments.append(["string",value])
             elif argType == "wchar" or argType == "-Z":
-                hbin_arguments.append(["wchar",value])
-            # elif argType == "base64" or argType == "-b":
-            #     hbin_arguments.append(["base64",value])
+                bof_arguments.append(["wchar",value])
             else:
                 return PTRPCTypedArrayParseFunctionMessageResponse(Success=False, Error=f"Failed to parse argument: {argument}: Unknown value type.")
 
-        argumentResponse = PTRPCTypedArrayParseFunctionMessageResponse(Success=True, TypedArray=hbin_arguments)
+        argumentResponse = PTRPCTypedArrayParseFunctionMessageResponse(Success=True, TypedArray=bof_arguments)
         
         return argumentResponse
     
@@ -109,7 +105,7 @@ class ExecuteBofCommand(CommandBase):
             raise Exception("Failed to get file contents: " + file.Error)
 
         response.DisplayParams = ""
-
+        
         return response
     
     async def process_response(self, task: PTTaskMessageAllData, response: any) -> PTTaskProcessResponseMessageResponse:

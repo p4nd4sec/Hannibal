@@ -126,7 +126,7 @@ PVOID ObjectResolveSymbol(PINSTANCE hannibal_instance_ptr, char *task_uuid, PSTR
 		// copy the symbol into the buffer 
 		//
 		pic_memset(Buffer, 0, MAX_PATH);
-			pic_memcpy(Buffer, Symbol, pic_strlen(Symbol));
+		pic_memcpy(Buffer, Symbol, pic_strlen(Symbol));
 
 		//
 		// replace the $ with a null byte 
@@ -147,7 +147,7 @@ PVOID ObjectResolveSymbol(PINSTANCE hannibal_instance_ptr, char *task_uuid, PSTR
 					pic_wsprintf(DbgString, L"[!] Module not found: %s\n", Library);
 					hannibal_response(DbgString, task_uuid);
 			return NULL;
-				}
+			}
 		}
 
 		//
@@ -155,17 +155,17 @@ PVOID ObjectResolveSymbol(PINSTANCE hannibal_instance_ptr, char *task_uuid, PSTR
 		//
 		if (!(Resolved = hannibal_instance_ptr->Win32.GetProcAddress(Module, Function))) {
 			// printf("[!] Function not found inside of %s: %s\n", Library, Function);
-                pic_wsprintf(DbgString, L"[!] Function not found inside of %s: %s\n", Library, Function);
-                hannibal_response(DbgString, task_uuid);
+			pic_wsprintf(DbgString, L"[!] Function not found inside of %s: %s\n", Library, Function);
+			hannibal_response(DbgString, task_uuid);
 			return NULL;
 		}
 	}
 
 	// printf(" -> %s @ %p\n", Symbol, Resolved);
-        pic_wsprintf(DbgString, L" -> %s @ %p\n", Symbol, Resolved);
-        hannibal_response(DbgString, task_uuid);
+	pic_wsprintf(DbgString, L" -> %s @ %p\n", Symbol, Resolved);
+	hannibal_response(DbgString, task_uuid);
 
-        hannibal_instance_ptr->Win32.RtlSecureZeroMemory(Buffer, sizeof(Buffer));
+	hannibal_instance_ptr->Win32.RtlSecureZeroMemory(Buffer, sizeof(Buffer));
 
 	return Resolved; 
 }
@@ -291,7 +291,7 @@ BOOL ObjectProcessSection(PINSTANCE hannibal_instance_ptr, char *task_uuid, POBJ
 	PVOID Resolved = { 0 };
 	PVOID Reloc = { 0 };
 	ULONG FnIndex = { 0 };
-   WCHAR DbgString[256] = { 0 };
+   	WCHAR DbgString[256] = { 0 };
 	//
 	// process & relocate the object file sections
 	// and process symbols and imported functions
@@ -336,8 +336,8 @@ BOOL ObjectProcessSection(PINSTANCE hannibal_instance_ptr, char *task_uuid, POBJ
 				//
 				if (!(Resolved = ObjectResolveSymbol(hannibal_instance_ptr, task_uuid, Symbol))) {
 					// printf("[!] ObjectResolveSymbol failed to resolve symbol: %s\n", Symbol);
-                        pic_wsprintf(DbgString, L"[!] ObjectResolveSymbol failed to resolve symbol: %s\n", Symbol);
-                        hannibal_response(DbgString, task_uuid);
+					pic_wsprintf(DbgString, L"[!] ObjectResolveSymbol failed to resolve symbol: %s\n", Symbol);
+					hannibal_response(DbgString, task_uuid);
 					return FALSE;
 				}
 			}
@@ -379,7 +379,7 @@ BOOL ObjectExecute(PINSTANCE hannibal_instance_ptr, char *task_uuid, POBJECT_CTX
 	PVOID SecBase = { 0 };
 	ULONG SecSize = { 0 };
 	ULONG Protect = { 0 };
-   WCHAR DbgString[256] = { 0 };
+   	WCHAR DbgString[256] = { 0 };
 
 	for (int i = 0; i < ObjCtx->Header->NumberOfSymbols; i++) {
 		ObjSym = &ObjCtx->SymTbl[i];
@@ -539,26 +539,26 @@ BOOL ObjectLdr(PINSTANCE hannibal_instance_ptr, char *task_uuid, PVOID pObject, 
 		//
 		pic_memcpy(SecBase, (PVOID)(ObjCtx.Base + (ULONG_PTR)ObjCtx.Sections[i].PointerToRawData), SecSize);
 		// printf(" -> %-8s @ %p [%ld bytes]\n", (PSTR)ObjCtx.Sections[i].Name, SecBase, SecSize);
-            pic_wsprintf(DbgString, L" -> %-8s @ %p [%ld bytes]\n", (PSTR)ObjCtx.Sections[i].Name, SecBase, SecSize);
-            hannibal_response(DbgString, task_uuid);
+		pic_wsprintf(DbgString, L" -> %-8s @ %p [%ld bytes]\n", (PSTR)ObjCtx.Sections[i].Name, SecBase, SecSize);
+		hannibal_response(DbgString, task_uuid);
 
 		//
-			// get the next page entry to write our
-			// object data section into
-			//
+		// get the next page entry to write our
+		// object data section into
+		//
 		SecBase = (PVOID)PAGE_ALIGN(((ULONG_PTR)SecBase + SecSize));
 	}
 
 	//
-		// last page of the object memory is the symbol/function map
-		//
+	// last page of the object memory is the symbol/function map
+	//
 	ObjCtx.SymMap = SecBase;
 
 	// puts("\n=== Process Sections ===\n");
     hannibal_response(L"=== Process Sections ===", task_uuid);
 	if (!(Success = ObjectProcessSection(hannibal_instance_ptr, task_uuid, &ObjCtx))) {
 		// printf("[!] Failed to process sections\n");
-            hannibal_response(L"[!] Failed to process sections", task_uuid);
+		hannibal_response(L"[!] Failed to process sections", task_uuid);
 		goto _END_OF_CODE;
 	}
 
@@ -566,13 +566,13 @@ BOOL ObjectLdr(PINSTANCE hannibal_instance_ptr, char *task_uuid, PVOID pObject, 
     hannibal_response(L"=== Symbol Execution ===", task_uuid);
 	if (!(Success = ObjectExecute(hannibal_instance_ptr, task_uuid, &ObjCtx, sFunction, pArgs, uArgc))) {
 		// printf("[!] Failed to execute function: %s\n", sFunction);
-            pic_wsprintf(DbgString, L"[!] Failed to execute function: %s\n", sFunction);
-            hannibal_response(DbgString, task_uuid);
-			goto _END_OF_CODE;
+		pic_wsprintf(DbgString, L"[!] Failed to execute function: %s\n", sFunction);
+		hannibal_response(DbgString, task_uuid);
+		goto _END_OF_CODE;
 	}
 
-		// printf("[*] Object file successfully executed\n");
-            hannibal_response(L"[*] Object file successfully executed", task_uuid);
+	// printf("[*] Object file successfully executed\n");
+	hannibal_response(L"[*] Object file successfully executed", task_uuid);
 
 _END_OF_CODE:
 	if (VirtAddr) {
@@ -585,7 +585,6 @@ _END_OF_CODE:
 		ObjCtx.SecMap = NULL;
 	}
 
-
 	//
 	// clear the struct context from the stack
 	//
@@ -594,26 +593,29 @@ _END_OF_CODE:
 	return Success;
 }
 
-int do_bof(PINSTANCE hannibal_instance_ptr, PSTR argv, char* task_uuid)
+int do_bof(PINSTANCE hannibal_instance_ptr, CMD_EXECUTE_BOF bof_payload, char* task_uuid)
 {
 	PSTR sPath = { 0 };
 	PBYTE pObject = { 0 };
 	ULONG uLength = { 0 };
 
-	sPath = argv;
+	sPath = bof_payload.args;
 	WCHAR DbgString[256];
-		// pic_strcpy(DbgString, "[*] Loading object file:");
-		// pic_strcat(DbgString, sPath);
+	
+	// pic_strcpy(DbgString, "[*] Loading object file:");
+	// pic_strcat(DbgString, sPath);
 	// printf("[*] Loading object file: %s\n", sPath);
-		pic_wsprintf(DbgString, L"[*] Loading object file: %s", sPath);
+	
+	pic_wsprintf(DbgString, L"[*] Loading object file: %s", sPath);
 	hannibal_response(DbgString, task_uuid);
+	
 	//
 	// read object file from disk into memory 
 	//
 
 	if (!ReadFileFromDiskA(hannibal_instance_ptr, task_uuid, sPath, (PBYTE*)&pObject, &uLength)) {
 		// printf("[!] Failed to load file: %s\n", sPath);
-			hannibal_response(L"[!] Failed to load file", task_uuid);
+		hannibal_response(L"[!] Failed to load file", task_uuid);
 		goto END;
 	}
 	// printf("[*] Object file loaded @ %p [%ld bytes]\n", pObject, uLength);
@@ -622,20 +624,48 @@ int do_bof(PINSTANCE hannibal_instance_ptr, PSTR argv, char* task_uuid)
 	//
 	// invoke the object file
 	//
+
+	// TODOs: The `NULL` parameter is actually arguments. We need to pass the arguments to the object file correctly.
 	if (!ObjectLdr(hannibal_instance_ptr, task_uuid, pObject, "go", NULL, 0)) {
 		// printf("[!] Failed to execute object file\n");
-			hannibal_response(L"[!] Failed to execute object file", task_uuid);
+		hannibal_response(L"[!] Failed to execute object file", task_uuid);
 	}
 END:
 	return 0;
 }
+
 SECTION_CODE void cmd_bof(TASK t)
 {
 	HANNIBAL_INSTANCE_PTR
 
 	CMD_EXECUTE_BOF *bof = (CMD_EXECUTE_BOF *)t.cmd;
 
-	do_bof(hannibal_instance_ptr, bof->path_bof, t.task_uuid);
+	/**
+    * Make sure this struct matches what's in the bof template.
+    */
+    typedef struct _BOF {
+        LPVOID args;
+		int arg_size;
+		PSTR path_bof;
+		int path_bof_size;
+    } BOF_IN;
+
+	BOF_IN *bof_in_payload = (BOF_IN *)hannibal_instance_ptr->Win32.VirtualAlloc(
+		NULL,
+		sizeof(BOF_IN *),
+		MEM_COMMIT,
+		PAGE_READWRITE
+	);
+
+	bof_in_payload->args = bof->args;
+	bof_in_payload->arg_size = bof->arg_size;
+	bof_in_payload->path_bof = hannibal_instance_ptr;
+	bof_in_payload->path_bof_size = t.task_uuid;
+
+	// TODO: Change `do_bof` function prototype
+	do_bof(hannibal_instance_ptr, bof_in_payload, t.task_uuid);
+
+	// TODOs: doing some cleanup here
 }
 
 #endif

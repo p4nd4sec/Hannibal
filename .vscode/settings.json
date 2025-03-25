@@ -43,6 +43,10 @@
         "type_traits": "c",
         "utility": "c",
         "config.h": "c",
-        "beaconapi.h": "c"
-    }
+        "beaconapi.h": "c",
+        "ws2tcpip.h": "c"
+    },
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}\\Payload_Type\\hannibal\\hannibal\\agent_code\\Hannibal\\include\\**",
+    ]
 }

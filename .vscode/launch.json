@@ -8,15 +8,15 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "C:\\code\\PUBLIC\\MythicAgents\\Hannibal\\Payload_Type\\hannibal\\hannibal\\agent_code\\Hannibal\\bin\\hannibal.exe",
+            "program": "${workspaceFolder}\\Payload_Type\\hannibal\\hannibal\\agent_code\\Hannibal\\bin\\hannibal.exe",
             "args": [                
             ],
             "stopAtEntry": false,
-            "cwd": "C:\\code\\PUBLIC\\MythicAgents\\Hannibal\\Payload_Type\\hannibal\\hannibal\\agent_code\\Hannibal",
+            "cwd": ".",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "miDebuggerPath": "C:\\ProgramData\\mingw64\\mingw64\\bin\\gdb.exe",
+            "miDebuggerPath": "C:\\cygwin64\\bin\\gdb.exe",
             "setupCommands": [
                 {
                     "description": "Use GDB",
