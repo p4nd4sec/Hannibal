@@ -420,7 +420,7 @@ class hannibal_python_translator(TranslationContainer):
                 # TYPE
                 data += self.encode_uint8(self.TLV_CMD_EXECUTE_HBIN_ARGS)
 
-                # LENGTH
+                # LENGTH of args (not really argc but the length of the buffer)
                 arg_buf_len = 0
                 for arg in params["hbin_arguments"]:
                     if arg[0] == "int32":
@@ -432,7 +432,7 @@ class hannibal_python_translator(TranslationContainer):
 
                 data += self.encode_uint32(arg_buf_len)
 
-                # VALUE
+                # VALUE of args
                 for arg in params["hbin_arguments"]:
                     if arg[0] == "int32":
                         data += self.encode_uint32(int(arg[1])) # The json.loads converts everything to string

@@ -137,6 +137,14 @@ typedef struct _CMD_EXECUTE_BOF {
     LPVOID bof;
     int bof_size;
 } CMD_EXECUTE_BOF;
+
+typedef struct _BOF {
+    LPVOID args;		                        // args
+    int arg_size;		                        // argc
+    LPVOID hannibal_instance;                   // reference to the hannibal instance
+    LPVOID pbof_content;                        // pointer to bof content
+    char *controller_uuid;                      // controller uuid (task uuid)
+} BOF_IN;
 #endif
 
 #ifdef INCLUDE_CMD_RM

