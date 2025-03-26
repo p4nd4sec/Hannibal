@@ -16,7 +16,7 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "miDebuggerPath": "C:\\cygwin64\\bin\\gdb.exe",
+            "miDebuggerPath": "C:\\ProgramData\\mingw64\\mingw64\\bin\\gdb.exe",
             "setupCommands": [
                 {
                     "description": "Use GDB",

