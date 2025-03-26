@@ -101,8 +101,8 @@ class hannibal_python_translator(TranslationContainer):
     TLV_CMD_SLEEP_JITTER = 46
 
     # execute_bof
-    TLV_CMD_EXECUTE_BOF_PATH = 47
-    # TLV_CMD_EXECUTE_BOF_ARGS = 48
+    TLV_CMD_EXECUTE_BOF_ARGS = 47
+    TLV_CMD_EXECUTE_BOF_BUFFER = 48
 
 
     #################################### CMD IDs
@@ -420,7 +420,7 @@ class hannibal_python_translator(TranslationContainer):
                 # TYPE
                 data += self.encode_uint8(self.TLV_CMD_EXECUTE_HBIN_ARGS)
 
-                # LENGTH
+                # LENGTH of args (not really argc but the length of the buffer)
                 arg_buf_len = 0
                 for arg in params["hbin_arguments"]:
                     if arg[0] == "int32":
@@ -432,7 +432,7 @@ class hannibal_python_translator(TranslationContainer):
 
                 data += self.encode_uint32(arg_buf_len)
 
-                # VALUE
+                # VALUE of args
                 for arg in params["hbin_arguments"]:
                     if arg[0] == "int32":
                         data += self.encode_uint32(int(arg[1])) # The json.loads converts everything to string
@@ -460,20 +460,46 @@ class hannibal_python_translator(TranslationContainer):
                 data += self.encode_uint8(self.TLV_CMD_ID)
                 data += self.encode_uint32(len(task["id"]) + 1)
                 data += self.encode_string(task["id"])
-
-                params = json.loads(task["parameters"])
-
-                # data += self.encode_uint8(self.TLV_CMD_EXECUTE_BOF_ARGS)
-                # unicode_len = len(self.encode_stringW(params["arguments"]))
-                # data += self.encode_uint32(unicode_len)
-                # data += self.encode_stringW(params["arguments"])
-
-                data += self.encode_uint8(self.TLV_CMD_EXECUTE_BOF_PATH)
-                unicode_len = len(self.encode_stringW(params["path"]))
-                data += self.encode_uint32(unicode_len)
-                data += self.encode_stringW(params["path"])
                 
-            # {'action': 'get_tasking', 'tasks': [{'timestamp': 1729031837, 'command': 'execute_hbin', 'parameters': '{"hbin": "a001aa77-dec8-4f33-9f08-d93f703dbf22", "hbin_arguments": [["wchar", "test"]], "file_size": "32768", "raw": "b\'VH\\\\x89\\\\xe6H\\\\x83\\\\xe4\\\\
+                params = json.loads(task["parameters"])
+                
+                # create the datastream 
+                
+                 # TYPE
+                data += self.encode_uint8(self.TLV_CMD_EXECUTE_BOF_ARGS)
+
+                # LENGTH
+                arg_buf_len = 0
+                for arg in params["bof_arguments"]:
+                    if arg[0] == "int32":
+                        arg_buf_len += 4  # Size of uint32
+                    elif arg[0] == "string":
+                        arg_buf_len += len(arg[1]) + 1  # Length + null terminator
+                    elif arg[0] == "wchar":
+                        arg_buf_len += len(arg[1]) * 2 + 2  # In terms of bytes each character is 2 bytes
+
+                data += self.encode_uint32(arg_buf_len)
+
+                # VALUE
+                for arg in params["bof_arguments"]:
+                    if arg[0] == "int32":
+                        data += self.encode_uint32(int(arg[1])) # The json.loads converts everything to string
+                    elif arg[0] == "string":
+                        data += self.encode_string(arg[1]) 
+                    elif arg[0] == "wchar":
+                        data += self.encode_stringW(arg[1])
+
+
+                data += self.encode_uint8(self.TLV_CMD_EXECUTE_BOF_BUFFER)
+
+                raw_string = params["raw"]
+                raw_string = raw_string[2:-1] # Remove the leading "b'" and the trailing "'"
+                decoded_string = codecs.decode(raw_string.encode('utf-8'), 'unicode_escape')
+                bof_bytes = decoded_string.encode('latin1')  # Convert to bytes
+                data += self.encode_uint32(len(bof_bytes))
+                data += bof_bytes
+                
+            # {'action': 'get_tasking', 'tasks': [{'timestamp': 1729031837, 'command': 'execute_bof', 'parameters': '{"bof": "a001aa77-dec8-4f33-9f08-d93f703dbf22", "bof_arguments": [["wchar", "test"]], "file_size": "32768", "raw": "b\'VH\\\\x89\\\\xe6H\\\\x83\\\\xe4\\\\
             
 
         return data
