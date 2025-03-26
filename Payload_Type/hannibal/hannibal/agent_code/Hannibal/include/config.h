@@ -1,3 +1,7 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+// #define PIC_BUILD
 #define PROFILE_MYTHIC_HTTP
 #define CONFIG_SLEEP 3
 #define CONFIG_SLEEP_JITTER 0
