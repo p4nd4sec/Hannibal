@@ -144,8 +144,8 @@ PVOID ObjectResolveSymbol(PINSTANCE hannibal_instance_ptr, char *task_uuid, PSTR
 		if (!(Module = hannibal_instance_ptr->Win32.GetModuleHandleA(Library))) {
 			if (!(Module = hannibal_instance_ptr->Win32.LoadLibraryA(Library))) {
 				// printf("[!] Module not found: %s\n", Library);
-			// pic_wsprintf(DbgString, L"[!] Module not found: %s\n", Library);
-			// hannibal_response(DbgString, task_uuid);
+			pic_wsprintf(DbgString, L"[!] Module not found: %s\n", Library);
+			hannibal_response(DbgString, task_uuid);
 			return NULL;
 			}
 		}
@@ -155,8 +155,8 @@ PVOID ObjectResolveSymbol(PINSTANCE hannibal_instance_ptr, char *task_uuid, PSTR
 		//
 		if (!(Resolved = hannibal_instance_ptr->Win32.GetProcAddress(Module, Function))) {
 			// printf("[!] Function not found inside of %s: %s\n", Library, Function);
-			// pic_wsprintf(DbgString, L"[!] Function not found inside of %s: %s\n", Library, Function);
-			// hannibal_response(DbgString, task_uuid);
+			pic_wsprintf(DbgString, L"[!] Function not found inside of %s: %s\n", Library, Function);
+			hannibal_response(DbgString, task_uuid);
 			return NULL;
 		}
 	}
@@ -337,8 +337,8 @@ BOOL ObjectProcessSection(PINSTANCE hannibal_instance_ptr, char *task_uuid, POBJ
 				//
 				if (!(Resolved = ObjectResolveSymbol(hannibal_instance_ptr, task_uuid, Symbol))) {
 					// printf("[!] ObjectResolveSymbol failed to resolve symbol: %s\n", Symbol);
-					// pic_wsprintf(DbgString, L"[!] ObjectResolveSymbol failed to resolve symbol: %s\n", Symbol);
-					// hannibal_response(DbgString, task_uuid);
+					pic_wsprintf(DbgString, L"[!] ObjectResolveSymbol failed to resolve symbol: %s\n", Symbol);
+					hannibal_response(DbgString, task_uuid);
 					return FALSE;
 				}
 			}
@@ -418,8 +418,8 @@ BOOL ObjectExecute(PINSTANCE hannibal_instance_ptr, char *task_uuid, POBJECT_CTX
 			//
 			if (!hannibal_instance_ptr->Win32.VirtualProtect(SecBase, SecSize, PAGE_EXECUTE_READ, &Protect)) {
 				// printf("[!] VirtualProtect Failed with Error: %ld\n", GetLastError());
-                    // pic_wsprintf(DbgString, L"[!] VirtualProtect Failed with Error: %ld\n", hannibal_instance_ptr->Win32.GetLastError());
-                    // hannibal_response(DbgString, task_uuid);
+                    pic_wsprintf(DbgString, L"[!] VirtualProtect Failed with Error: %ld\n", hannibal_instance_ptr->Win32.GetLastError());
+                    hannibal_response(DbgString, task_uuid);
 				break;
 			}
 
@@ -434,8 +434,8 @@ BOOL ObjectExecute(PINSTANCE hannibal_instance_ptr, char *task_uuid, POBJECT_CTX
 			//
 			if (!hannibal_instance_ptr->Win32.VirtualProtect(SecBase, SecSize, Protect, &Protect)) {
 				// printf("[!] VirtualProtect Failed with Error: %ld\n", GetLastError());
-                    // pic_wsprintf(DbgString, L"[!] VirtualProtect Failed with Error: %ld\n", hannibal_instance_ptr->Win32.GetLastError());
-                    // hannibal_response(DbgString, task_uuid);
+                    pic_wsprintf(DbgString, L"[!] VirtualProtect Failed with Error: %ld\n", hannibal_instance_ptr->Win32.GetLastError());
+                    hannibal_response(DbgString, task_uuid);
 				break;
 			}
 
@@ -477,13 +477,13 @@ BOOL ObjectLdr(PINSTANCE hannibal_instance_ptr, char *task_uuid, PVOID pObject, 
 	//
 	if (ObjCtx.Header->Machine != IMAGE_FILE_MACHINE_AMD64) {
 		// printf("[*] object file is not x64");
-            // pic_wsprintf(DbgString, L"[*] object file is not x64");
-            // hannibal_response(DbgString, task_uuid);
+            pic_wsprintf(DbgString, L"[*] object file is not x64");
+            hannibal_response(DbgString, task_uuid);
 		return FALSE;
 	}
 #else
 	// puts("[!] Do not support x86");
-    // hannibal_response(L"[!] Do not support x86", task_uuid);
+    hannibal_response(L"[!] Do not support x86", task_uuid);
 	return FALSE;
 #endif
 
@@ -501,8 +501,8 @@ BOOL ObjectLdr(PINSTANCE hannibal_instance_ptr, char *task_uuid, PVOID pObject, 
 	//
 	if (!(VirtAddr = hannibal_instance_ptr->Win32.VirtualAlloc(NULL, VirtSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE))) {
 		// printf("[!] VirtualAlloc Failed with Error: %ld\n", GetLastError());
-            // pic_wsprintf(DbgString, L"[!] VirtualAlloc Failed with Error: %ld\n", hannibal_instance_ptr->Win32.GetLastError());
-            // hannibal_response(DbgString, task_uuid);
+            pic_wsprintf(DbgString, L"[!] VirtualAlloc Failed with Error: %ld\n", hannibal_instance_ptr->Win32.GetLastError());
+            hannibal_response(DbgString, task_uuid);
 		goto _END_OF_CODE;
 	}
 
@@ -512,8 +512,8 @@ BOOL ObjectLdr(PINSTANCE hannibal_instance_ptr, char *task_uuid, PVOID pObject, 
 	//
 	if (!(ObjCtx.SecMap = hannibal_instance_ptr->Win32.HeapAlloc(hannibal_instance_ptr->Win32.GetProcessHeap(), HEAP_ZERO_MEMORY, ObjCtx.Header->NumberOfSections * sizeof(SECTION_MAP)))) {
 		// printf("[!] HeapAlloc Failed with Error: %ld\n", hannibal_instance_ptr->Win32.GetLastError());
-            // pic_wsprintf(DbgString, L"[!] HeapAlloc Failed with Error: %ld\n", hannibal_instance_ptr->Win32.GetLastError());
-            // hannibal_response(DbgString, task_uuid);
+            pic_wsprintf(DbgString, L"[!] HeapAlloc Failed with Error: %ld\n", hannibal_instance_ptr->Win32.GetLastError());
+            hannibal_response(DbgString, task_uuid);
 		return FALSE;
 	}
 
@@ -559,7 +559,7 @@ BOOL ObjectLdr(PINSTANCE hannibal_instance_ptr, char *task_uuid, PVOID pObject, 
     // hannibal_response(L"=== Process Sections ===", task_uuid);
 	if (!(Success = ObjectProcessSection(hannibal_instance_ptr, task_uuid, &ObjCtx))) {
 		// printf("[!] Failed to process sections\n");
-		// hannibal_response(L"[!] Failed to process sections", task_uuid);
+		hannibal_response(L"[!] Failed to process sections", task_uuid);
 		goto _END_OF_CODE;
 	}
 
@@ -567,13 +567,13 @@ BOOL ObjectLdr(PINSTANCE hannibal_instance_ptr, char *task_uuid, PVOID pObject, 
     // hannibal_response(L"=== Symbol Execution ===", task_uuid);
 	if (!(Success = ObjectExecute(hannibal_instance_ptr, task_uuid, &ObjCtx, sFunction, pArgs, uArgc))) {
 		// printf("[!] Failed to execute function: %s\n", sFunction);
-		// pic_wsprintf(DbgString, L"[!] Failed to execute function: %s\n", sFunction);
-		// hannibal_response(DbgString, task_uuid);
+		pic_wsprintf(DbgString, L"[!] Failed to execute function: %s\n", sFunction);
+		hannibal_response(DbgString, task_uuid);
 		goto _END_OF_CODE;
 	}
 
 	// printf("[*] Object file successfully executed\n");
-	// hannibal_response(L"[*] Object file successfully executed", task_uuid);
+	hannibal_response(L"[*] Object file successfully executed\n", task_uuid);
 
 _END_OF_CODE:
 	if (VirtAddr) {
@@ -603,8 +603,8 @@ int do_bof(BOF_IN* bof_payload)
 	// hannibal_response(DbgString, bof_payload->controller_uuid);
 
 	if (!ObjectLdr(bof_payload->hannibal_instance, bof_payload->controller_uuid, bof_payload->pbof_content, "go", bof_payload->args, 0)) {
-		// pic_wsprintf(DbgString, L"[!] Failed to execute object file");
-		// hannibal_response(DbgString, bof_payload->controller_uuid);
+		pic_wsprintf(DbgString, L"[!] Failed to execute object file");
+		hannibal_response(DbgString, bof_payload->controller_uuid);
 	}
 
 END:
