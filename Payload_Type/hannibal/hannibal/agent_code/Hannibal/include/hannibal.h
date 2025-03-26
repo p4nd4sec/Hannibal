@@ -168,7 +168,7 @@ typedef struct _INSTANCE {
         PTR_OF_TYPE( HeapFree )
         PTR_OF_TYPE( GetProcessHeap )
         PTR_OF_TYPE( GetModuleHandleA )
-        PTR_OF_TYPE (RtlSecureZeroMemory)
+        // PTR_OF_TYPE (RtlSecureZeroMemory)
         // User32.dll
         PTR_OF_TYPE( MessageBoxA )
         PTR_OF_TYPE( MessageBoxW )

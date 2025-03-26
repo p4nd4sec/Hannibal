@@ -164,8 +164,9 @@ PVOID ObjectResolveSymbol(PINSTANCE hannibal_instance_ptr, char *task_uuid, PSTR
 	// printf(" -> %s @ %p\n", Symbol, Resolved);
 	pic_wsprintf(DbgString, L" -> %s @ %p\n", Symbol, Resolved);
 	hannibal_response(DbgString, task_uuid);
-
-	hannibal_instance_ptr->Win32.RtlSecureZeroMemory(Buffer, sizeof(Buffer));
+	
+	pic_RtlSecureZeroMemory(Buffer, sizeof(Buffer));
+	// pic_memset(Buffer, 0, sizeof(Buffer));
 
 	return Resolved; 
 }
@@ -588,7 +589,8 @@ _END_OF_CODE:
 	//
 	// clear the struct context from the stack
 	//
-	hannibal_instance_ptr->Win32.RtlSecureZeroMemory(&ObjCtx, sizeof(ObjCtx));
+	pic_RtlSecureZeroMemory(&ObjCtx, sizeof(ObjCtx));
+	// pic_memset(&ObjCtx, 0, sizeof(ObjCtx));
 
 	return Success;
 }
