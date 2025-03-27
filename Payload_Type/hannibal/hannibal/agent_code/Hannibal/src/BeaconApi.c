@@ -347,6 +347,7 @@ int BeaconSprintf(char* dest, const char* format, ...) {
     va_end(args);
     return chars_written;
 }
+
 // Parser functions
 int ParseInt32(PBYTE* args) {
     int value = 0;

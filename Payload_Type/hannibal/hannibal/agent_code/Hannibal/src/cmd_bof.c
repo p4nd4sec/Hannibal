@@ -120,6 +120,20 @@ PVOID ObjectResolveSymbol(BOF_IN* bof_in_payload, PSTR Symbol) {
 			Resolved = BeaconOutput;
 		} else if (pic_strcmp("BeaconPrintf", Symbol) == 0) {
 			Resolved = BeaconPrintf;
+		} else if (pic_strcmp("BeaconAddMessage", Symbol) == 0){
+			Resolved = BeaconAddMessage;
+		} else if (pic_strcmp("BeaconStrcatW", Symbol) == 0) {
+			Resolved = BeaconStrcatW;
+		} else if (pic_strcmp("BeaconWsprintf", Symbol) == 0) {
+			Resolved = BeaconWsprintf;
+		} else if (pic_strcmp("BeaconSprintf", Symbol) == 0) {
+			Resolved = BeaconSprintf;
+		} else if (pic_strcmp("ParseInt32", Symbol) == 0) {
+			Resolved = ParseInt32;
+		} else if (pic_strcmp("ParseString", Symbol) == 0) {
+			Resolved = ParseString;
+		} else if (pic_strcmp("ParseWideString", Symbol) == 0) {
+			Resolved = ParseWideString;
 		}
 	} else {
 		//
