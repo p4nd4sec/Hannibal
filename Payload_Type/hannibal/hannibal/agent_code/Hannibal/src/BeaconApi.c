@@ -356,15 +356,18 @@ int ParseInt32(PBYTE* args) {
     return value;
 }
 
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
 char* ParseString(PBYTE* args) {
     int length = 0;
     PBYTE current = *args;
     
-    // Find string length
+   
+    // Find string length. You should not add optimizations here. 
     while (current[length] != 0) {
         length++;
     }
-    
+
     char* string = (char*)*args;
     *args += length + 1; // Move past string and null terminator
     return string;
@@ -374,7 +377,7 @@ LPCWSTR ParseWideString(PBYTE* args) {
     int length = 0;
     PWCHAR current = (PWCHAR)*args;
     
-    // Find wide string length
+    // Find string length. You should not add optimizations here. 
     while (current[length] != 0) {
         length++;
     }
@@ -383,3 +386,4 @@ LPCWSTR ParseWideString(PBYTE* args) {
     *args += (length + 1) * sizeof(WCHAR); // Move past wide string and null terminator
     return string;
 }
+#pragma GCC pop_options
