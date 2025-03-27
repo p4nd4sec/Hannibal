@@ -25,6 +25,6 @@ void BeaconPrintf(int type, char* fmt, ...);
 void BeaconAddMessage(LPCWSTR source, LPCWSTR message);
 void BeaconStrcatW(wchar_t *wstr1, wchar_t *wstr2);
 int BeaconWsprintf(wchar_t* dest, const wchar_t* format, ...);
-void ParseInt32(PBYTE* args);
+int ParseInt32(PBYTE* args);
 char* ParseString(PBYTE* args);
 LPCWSTR ParseWideString(PBYTE* args);
