@@ -133,17 +133,18 @@ typedef struct _CMD_EXECUTE_HBIN { // Agent > Controller
 #ifdef INCLUDE_CMD_EXECUTE_BOF
 typedef struct _CMD_EXECUTE_BOF {
     LPVOID args;
-    int arg_size;
+    int argc;
     LPVOID bof;
     int bof_size;
 } CMD_EXECUTE_BOF;
 
 typedef struct _BOF {
     LPVOID args;		                        // args
-    int arg_size;		                        // argc
+    int argc;		                        // argc
     LPVOID hannibal_instance;                   // reference to the hannibal instance
     LPVOID pbof_content;                        // pointer to bof content
-    char *controller_uuid;                      // controller uuid (task uuid)
+    char* task_uuid;                      // controller uuid (task uuid)
+    LPCWSTR buffer_message;                // buffer to store the message
 } BOF_IN;
 #endif
 

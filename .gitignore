@@ -198,3 +198,4 @@ Mkfile.old
 dkms.conf
 
 !.\asm\x64\*.asm
+anhsondeptrai.c

