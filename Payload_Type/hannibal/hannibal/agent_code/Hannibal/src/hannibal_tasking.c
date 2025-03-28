@@ -173,7 +173,7 @@ SECTION_CODE void init_task_ptrs()
     hannibal_instance_ptr->tasks.task_func_ptrs_size = sizeof(task_ptrs)/sizeof(TASK_ENTRY);
     hannibal_instance_ptr->tasks.task_func_ptrs = (TASK_ENTRY *)hannibal_instance_ptr->Win32.VirtualAlloc(NULL, sizeof(task_ptrs), MEM_COMMIT, PAGE_READWRITE); // Doesn't get freed. Stays for lifetime of agent
 
-     if(hannibal_instance_ptr->tasks.task_func_ptrs == NULL){
+    if(hannibal_instance_ptr->tasks.task_func_ptrs == NULL){
         return 1;
     }
 
