@@ -37,6 +37,20 @@ class ExecuteBofArguments(TaskArguments):
                         ui_position=1
                     ),
                 ]),
+            CommandParameter(
+                name="additional_file",
+                cli_name="AdditionalFile",
+                display_name="Additional File",
+                type=ParameterType.File,
+                description="Additional file to be passed along to the BoF. Optional.",
+                parameter_group_info=[
+                    ParameterGroupInfo(
+                        required=False,
+                        group_name="Default",
+                        ui_position=2
+                    ),
+                ]
+            )
         ]
         
     async def get_arguments(self, arguments: PTRPCTypedArrayParseFunctionMessage) -> PTRPCTypedArrayParseFunctionMessageResponse:
