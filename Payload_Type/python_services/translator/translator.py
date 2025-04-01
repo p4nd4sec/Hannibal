@@ -502,11 +502,12 @@ class hannibal_python_translator(TranslationContainer):
                 
                 data += self.encode_uint8(self.TLV_CMD_EXECUTE_BOF_FILE)
                 
-                file_content = params["additional_file"]
-                if file_content is not None: 
-                    raw_file_string = file_content[2:-1] # Remove the leading "b'" and the trailing "'"
-                    decode_file_string = codecs.decode(raw_file_string.encode('utf-8'), 'unicode_escape')
-                    additional_file_bytes = decode_file_string.encode('latin1')  # Convert to bytes
+                raw_content = params["additional_file"]
+                if raw_content is not None: 
+                    print(f"{raw_content=}")
+                    raw_content = raw_content[2:-1] # Remove the leading "b'" and the trailing "'"
+                    decoded_raw_content = codecs.decode(raw_content.encode('utf-8'), 'unicode_escape')
+                    additional_file_bytes = decoded_raw_content.encode('latin1')  # Convert to bytes
                     data += self.encode_uint32(len(additional_file_bytes))
                     # file content
                     data += additional_file_bytes
