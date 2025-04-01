@@ -41,6 +41,7 @@ class ExecuteBofArguments(TaskArguments):
                 name="additional_file",
                 cli_name="AdditionalFile",
                 display_name="Additional File (Optional)",
+                default_value=None,
                 type=ParameterType.File,
                 description="Additional file to be passed along to the BoF. Optional.",
                 parameter_group_info=[

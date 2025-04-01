@@ -136,6 +136,8 @@ typedef struct _CMD_EXECUTE_BOF {
     int argc;
     PBYTE bof;
     int bof_size;
+    PBYTE file_content;
+    int file_size;
 } CMD_EXECUTE_BOF;
 #endif
 
