@@ -1180,7 +1180,7 @@ SECTION_CODE void deserialize_get_tasks_response(char *buffer)
             if (tlv_type == TLV_CMD_EXECUTE_BOF_FILE) { 
                 param3_uint32 = ReadUint32(&buffer);
                 if (param3_uint32 > 0) {
-                    param3_lpvoid = ReadBytes(&buffer, param3_uint32 - 1); // Escape from the null byte in the end. Not sure if it is needed. 
+                    param3_lpvoid = ReadBytes(&buffer, param3_uint32); // Escape from the null byte in the end. Not sure if it is needed. 
                 }
                 else {
                     param3_lpvoid = NULL;
