@@ -120,6 +120,14 @@ class ExecuteBofCommand(CommandBase):
         else:
             raise Exception("Failed to get file contents: " + file.Error)
 
+        fData_additional = FileData()
+        fData_additional.AgentFileId = taskData.args.get_arg("additional_file")
+        file_additional = await SendMythicRPCFileGetContent(fData_additional)
+        
+        if file_additional.Success:
+            taskData.args.add_arg("additional_file_size", len(file_additional.Content))
+            taskData.args.add_arg("additional_file_raw", file_additional.Content)
+            
         response.DisplayParams = ""
         
         return response
