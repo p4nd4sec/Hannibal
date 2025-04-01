@@ -70,5 +70,5 @@ int pic_sprintf(char* dest, const char* format, ...);
 int pic_wsprintf(wchar_t* dest, const wchar_t* format, ...);
 void dword_to_wchar(DWORD value, WCHAR* buffer, int base);
 void ulong_to_wchar(ULONG64 value, WCHAR *buffer);
-
+void pic_byte_to_wide_hex_string(PVOID  Buffer, SIZE_T Length, WCHAR *WideString);
 #endif // UTILITY_STRINGS_H

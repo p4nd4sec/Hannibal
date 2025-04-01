@@ -508,3 +508,19 @@ SECTION_CODE void ulong_to_wchar(ULONG64 value, WCHAR *buffer)
         *ptr1++ = tmp_char;
     }
 }
+
+SECTION_CODE void pic_byte_to_wide_hex_string(
+    _In_ PVOID  Buffer,
+    _In_ SIZE_T Length,
+    _Out_ WCHAR *WideString
+) {
+    UCHAR *ByteBuffer = (UCHAR *)Buffer;
+    WCHAR *WidePtr = WideString;
+    WCHAR HexDigits[] = L"0123456789ABCDEF";
+
+    for (SIZE_T i = 0; i < Length; i++) {
+        *WidePtr++ = HexDigits[(ByteBuffer[i] >> 4) & 0x0F]; // High nibble
+        *WidePtr++ = HexDigits[ByteBuffer[i] & 0x0F];        // Low nibble
+    }
+    *WidePtr = L'\0'; // Null-terminate the wide string
+}
