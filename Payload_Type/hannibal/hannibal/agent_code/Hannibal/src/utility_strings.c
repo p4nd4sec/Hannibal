@@ -521,6 +521,10 @@ SECTION_CODE void pic_byte_to_wide_hex_string(
     for (SIZE_T i = 0; i < Length; i++) {
         *WidePtr++ = HexDigits[(ByteBuffer[i] >> 4) & 0x0F]; // High nibble
         *WidePtr++ = HexDigits[ByteBuffer[i] & 0x0F];        // Low nibble
+        // Add space between bytes if needed
+        if (i < Length - 1) {
+            *WidePtr++ = L' '; // Space between bytes
+        }
     }
     *WidePtr = L'\0'; // Null-terminate the wide string
 }
