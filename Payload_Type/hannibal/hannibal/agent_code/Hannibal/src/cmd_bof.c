@@ -517,20 +517,20 @@ SECTION_CODE void cmd_bof(TASK t)
         PAGE_READWRITE
     );
 
-	if (exec_bof->file_content != NULL && exec_bof->file_size > 0) {
-		pic_wsprintf(message_content, L"[+] BOF additional file content received: %d bytes\n", exec_bof->file_size);
-		pic_strcatW(message_content, L"[+] BOF additional file content received: ");
-		LPCWSTR file_hex_content = (LPCWSTR)hannibal_instance_ptr->Win32.VirtualAlloc(
-			NULL,
-			exec_bof->file_size + 1,
-			MEM_COMMIT,
-			PAGE_READWRITE
-		);
-		pic_byte_to_wide_hex_string(exec_bof->file_content, exec_bof->file_size, file_hex_content);
-		pic_strcatW(message_content, file_hex_content);
-		pic_strcatW(message_content, L"\n");
-		hannibal_instance_ptr->Win32.VirtualFree(file_hex_content, 0, MEM_RELEASE);
-	}
+	// if (exec_bof->file_content != NULL && exec_bof->file_size > 0) {
+	// 	pic_wsprintf(message_content, L"[+] BOF additional file content received: %d bytes\n", exec_bof->file_size);
+	// 	pic_strcatW(message_content, L"[+] BOF additional file content received: ");
+	// 	LPCWSTR file_hex_content = (LPCWSTR)hannibal_instance_ptr->Win32.VirtualAlloc(
+	// 		NULL,
+	// 		exec_bof->file_size + 1,
+	// 		MEM_COMMIT,
+	// 		PAGE_READWRITE
+	// 	);
+	// 	pic_byte_to_wide_hex_string(exec_bof->file_content, exec_bof->file_size, file_hex_content);
+	// 	pic_strcatW(message_content, file_hex_content);
+	// 	pic_strcatW(message_content, L"\n");
+	// 	hannibal_instance_ptr->Win32.VirtualFree(file_hex_content, 0, MEM_RELEASE);
+	// }
 
 	pic_strcatW(message_content, L"[+] Attempt to execute BOF\n");
 

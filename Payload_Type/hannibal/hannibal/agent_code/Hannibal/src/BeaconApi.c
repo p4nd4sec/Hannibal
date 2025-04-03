@@ -67,7 +67,7 @@ char* BeaconDataExtract(datap* parser, int* size) {
     return outdata;
 }
 
-void BeaconOutput(int type, char* data, int len) {
+void BeaconOutput(DWORD64 type, char* data, int len) {
     // Output data to the controller
     int a = 0;
     for (int i = 0; i < 10; i++) {
@@ -77,12 +77,90 @@ void BeaconOutput(int type, char* data, int len) {
     return;
 }
 
-void BeaconPrintf(int type, char* fmt, ...) {
-    int a = 0;
-    for (int i = 0; i < 10; i++) {
-        // Output data[i] to the controller
-        a += i;
+void BeaconPrintf(DWORD64 pszDest, wchar_t* pszFormat, ...) {
+    va_list args;
+    va_start(args, pszFormat);
+    
+    // Tìm vị trí kết thúc của chuỗi đích
+    LPWSTR pszEnd = pszDest;
+    while (*pszEnd != L'\0')
+        pszEnd++;
+    
+    // Duyệt qua chuỗi định dạng
+    while (*pszFormat != L'\0') {
+        if (*pszFormat == L'%') {
+            pszFormat++; // Bỏ qua ký tự '%'
+            
+            switch (*pszFormat) {
+                case L'd': { // Xử lý số nguyên
+                    int value = va_arg(args, int);
+                    
+                    // Xử lý trường hợp số âm
+                    if (value < 0) {
+                        *pszEnd++ = L'-';
+                        value = -value;
+                    }
+                    
+                    // Chuyển đổi số nguyên sang chuỗi
+                    WCHAR digits[16]; // Đủ cho int 32-bit
+                    int digitCount = 0;
+                    
+                    // Xử lý trường hợp đặc biệt khi value = 0
+                    if (value == 0) {
+                        *pszEnd++ = L'0';
+                    } else {
+                        // Chuyển số thành các chữ số riêng lẻ
+                        while (value > 0) {
+                            digits[digitCount++] = (value % 10) + L'0';
+                            value /= 10;
+                        }
+                        
+                        // Đảo ngược thứ tự các chữ số
+                        for (int i = digitCount - 1; i >= 0; i--) {
+                            *pszEnd++ = digits[i];
+                        }
+                    }
+                    break;
+                }
+                
+                case L's': { // Xử lý chuỗi
+                    LPCWSTR str = va_arg(args, LPCWSTR);
+                    while (*str != L'\0') {
+                        *pszEnd++ = *str++;
+                    }
+                    break;
+                }
+                
+                case L'c': { // Xử lý ký tự
+                    wchar_t ch = (wchar_t)va_arg(args, int);
+                    *pszEnd++ = ch;
+                    break;
+                }
+                
+                case L'%': { // Xử lý '%'
+                    *pszEnd++ = L'%';
+                    break;
+                }
+                
+                // Thêm các trường hợp khác nếu cần
+                
+                default:
+                    // Xử lý định dạng không được hỗ trợ
+                    break;
+            }
+            
+            pszFormat++; // Chuyển đến ký tự tiếp theo
+        } else {
+            // Sao chép ký tự thông thường
+            *pszEnd++ = *pszFormat++;
+        }
     }
+    
+    // Thêm ký tự null terminator
+    *pszEnd = L'\0';
+    
+    va_end(args);
+    
     return;
 }
 
