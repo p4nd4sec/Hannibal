@@ -81,41 +81,41 @@ void BeaconPrintf(DWORD64 pszDest, wchar_t* pszFormat, ...) {
     va_list args;
     va_start(args, pszFormat);
     
-    // Tìm vị trí kết thúc của chuỗi đích
     LPWSTR pszEnd = pszDest;
     while (*pszEnd != L'\0')
         pszEnd++;
     
-    // Duyệt qua chuỗi định dạng
     while (*pszFormat != L'\0') {
         if (*pszFormat == L'%') {
-            pszFormat++; // Bỏ qua ký tự '%'
+            pszFormat++;
+            
+            // Kiểm tra prefix 'l' (cho long)
+            BOOL isLong = FALSE;
+            if (*pszFormat == L'l') {
+                isLong = TRUE;
+                pszFormat++;
+            }
             
             switch (*pszFormat) {
-                case L'd': { // Xử lý số nguyên
+                case L'd': {
                     int value = va_arg(args, int);
                     
-                    // Xử lý trường hợp số âm
                     if (value < 0) {
                         *pszEnd++ = L'-';
                         value = -value;
                     }
                     
-                    // Chuyển đổi số nguyên sang chuỗi
-                    WCHAR digits[16]; // Đủ cho int 32-bit
+                    WCHAR digits[32];
                     int digitCount = 0;
                     
-                    // Xử lý trường hợp đặc biệt khi value = 0
                     if (value == 0) {
                         *pszEnd++ = L'0';
                     } else {
-                        // Chuyển số thành các chữ số riêng lẻ
                         while (value > 0) {
                             digits[digitCount++] = (value % 10) + L'0';
                             value /= 10;
                         }
                         
-                        // Đảo ngược thứ tự các chữ số
                         for (int i = digitCount - 1; i >= 0; i--) {
                             *pszEnd++ = digits[i];
                         }
@@ -123,47 +123,198 @@ void BeaconPrintf(DWORD64 pszDest, wchar_t* pszFormat, ...) {
                     break;
                 }
                 
-                case L's': { // Xử lý chuỗi
-                    LPCWSTR str = va_arg(args, LPCWSTR);
-                    while (*str != L'\0') {
-                        *pszEnd++ = *str++;
+                case L'u': {
+                    unsigned int value = va_arg(args, unsigned int);
+                    
+                    WCHAR digits[32];
+                    int digitCount = 0;
+                    
+                    if (value == 0) {
+                        *pszEnd++ = L'0';
+                    } else {
+                        while (value > 0) {
+                            digits[digitCount++] = (value % 10) + L'0';
+                            value /= 10;
+                        }
+                        
+                        for (int i = digitCount - 1; i >= 0; i--) {
+                            *pszEnd++ = digits[i];
+                        }
                     }
                     break;
                 }
                 
-                case L'c': { // Xử lý ký tự
+                case L'x': 
+                case L'X': {
+                    const WCHAR hexCharsLower[] = L"0123456789abcdef";
+                    const WCHAR hexCharsUpper[] = L"0123456789ABCDEF";
+                    const WCHAR* hexChars = (*pszFormat == L'x') ? hexCharsLower : hexCharsUpper;
+                    
+                    unsigned long value;
+                    if (isLong) {
+                        value = va_arg(args, unsigned long);
+                    } else {
+                        value = va_arg(args, unsigned int);
+                    }
+                    
+                    WCHAR digits[32];
+                    int digitCount = 0;
+                    
+                    if (value == 0) {
+                        *pszEnd++ = L'0';
+                    } else {
+                        while (value > 0) {
+                            digits[digitCount++] = hexChars[value & 0xF];
+                            value >>= 4;
+                        }
+                        
+                        for (int i = digitCount - 1; i >= 0; i--) {
+                            *pszEnd++ = digits[i];
+                        }
+                    }
+                    break;
+                }
+                
+                case L'p': {
+                    const WCHAR hexChars[] = L"0123456789abcdef";
+                    PVOID ptr = va_arg(args, PVOID);
+                    ULONG_PTR value = (ULONG_PTR)ptr;
+                    
+                    // Thêm tiền tố "0x"
+                    *pszEnd++ = L'0';
+                    *pszEnd++ = L'x';
+                    
+                    // Xác định số bit của con trỏ (32 hoặc 64-bit)
+                    int numHexDigits = sizeof(PVOID) * 2;
+                    
+                    // In tất cả các chữ số hex, kể cả số 0 ở đầu
+                    for (int i = numHexDigits - 1; i >= 0; i--) {
+                        int digit = (value >> (i * 4)) & 0xF;
+                        *pszEnd++ = hexChars[digit];
+                    }
+                    break;
+                }
+                
+                case L'o': {
+                    unsigned int value = va_arg(args, unsigned int);
+                    
+                    WCHAR digits[32];
+                    int digitCount = 0;
+                    
+                    if (value == 0) {
+                        *pszEnd++ = L'0';
+                    } else {
+                        while (value > 0) {
+                            digits[digitCount++] = (value & 7) + L'0';
+                            value >>= 3;
+                        }
+                        
+                        for (int i = digitCount - 1; i >= 0; i--) {
+                            *pszEnd++ = digits[i];
+                        }
+                    }
+                    break;
+                }
+                
+                case L'f':
+                case L'g': {
+                    // Xử lý đơn giản số thực dạng "float" và "double"
+                    double value = va_arg(args, double);
+                    
+                    // Xử lý dấu
+                    if (value < 0) {
+                        *pszEnd++ = L'-';
+                        value = -value;
+                    }
+                    
+                    // Lấy phần nguyên
+                    ULONG64 intPart = (ULONG64)value;
+                    
+                    // Xử lý phần nguyên
+                    WCHAR intDigits[32];
+                    int intDigitCount = 0;
+                    
+                    if (intPart == 0) {
+                        intDigits[intDigitCount++] = L'0';
+                    } else {
+                        while (intPart > 0) {
+                            intDigits[intDigitCount++] = (intPart % 10) + L'0';
+                            intPart /= 10;
+                        }
+                    }
+                    
+                    // In phần nguyên (đảo ngược)
+                    for (int i = intDigitCount - 1; i >= 0; i--) {
+                        *pszEnd++ = intDigits[i];
+                    }
+                    
+                    // Lấy phần thập phân (giới hạn 6 chữ số thập phân)
+                    value -= (ULONG64)value;
+                    if (value > 0) {
+                        *pszEnd++ = L'.';
+                        
+                        for (int i = 0; i < 6; i++) {
+                            value *= 10;
+                            int digit = (int)value;
+                            *pszEnd++ = digit + L'0';
+                            value -= digit;
+                            
+                            // Dừng lại nếu phần thập phân là 0
+                            if (value < 0.000001)
+                                break;
+                        }
+                    }
+                    break;
+                }
+                
+                case L's': {
+                    LPCWSTR str = va_arg(args, LPCWSTR);
+                    if (str != NULL) {
+                        while (*str != L'\0') {
+                            *pszEnd++ = *str++;
+                        }
+                    } else {
+                        // Xử lý chuỗi NULL
+                        LPCWSTR nullStr = L"(null)";
+                        while (*nullStr != L'\0') {
+                            *pszEnd++ = *nullStr++;
+                        }
+                    }
+                    break;
+                }
+                
+                case L'c': {
                     wchar_t ch = (wchar_t)va_arg(args, int);
                     *pszEnd++ = ch;
                     break;
                 }
                 
-                case L'%': { // Xử lý '%'
+                case L'%': {
                     *pszEnd++ = L'%';
                     break;
                 }
                 
-                // Thêm các trường hợp khác nếu cần
-                
                 default:
-                    // Xử lý định dạng không được hỗ trợ
+                    // Giữ nguyên các định dạng không hỗ trợ
+                    *pszEnd++ = L'%';
+                    if (isLong)
+                        *pszEnd++ = L'l';
+                    *pszEnd++ = *pszFormat;
                     break;
             }
             
-            pszFormat++; // Chuyển đến ký tự tiếp theo
+            pszFormat++; 
         } else {
-            // Sao chép ký tự thông thường
             *pszEnd++ = *pszFormat++;
         }
     }
     
-    // Thêm ký tự null terminator
     *pszEnd = L'\0';
     
     va_end(args);
     
     return;
 }
-
 
 int BeaconWsprintf(wchar_t* dest, const wchar_t* format, ...) {
     wchar_t* d = dest;
@@ -426,7 +577,6 @@ int BeaconSprintf(char* dest, const char* format, ...) {
     return chars_written;
 }
 
-// Parser functions
 int ParseInt32(PBYTE* args) {
     int value = 0;
     memcpy(&value, *args, sizeof(int));
