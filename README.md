@@ -22,13 +22,13 @@ To install Hannibal, you'll need Mythic installed on a remote computer. You can 
 From the Mythic install directory, use the following command to install Hannibal as the **root** user:
 
 ```
-./mythic-cli install github https://github.com/MythicAgents/Hannibal.git
+./mythic-cli install github https://gitlab-red.ecq.local.com/son.nguyen/hannibal-bof.git
 ```
 
 From the Mythic install directory, use the following command to install Hannibal as a **non-root** user:
 
 ```
-sudo -E ./mythic-cli install github https://github.com/MythicAgents/Hannibal.git
+sudo -E ./mythic-cli install github https://gitlab-red.ecq.local.com/son.nguyen/hannibal-bof.git
 ```
 
 ## Notable Features
@@ -47,7 +47,7 @@ sudo -E ./mythic-cli install github https://github.com/MythicAgents/Hannibal.git
 | cp             | `cp [src_path] [dst_path]`                                                                                               | Copy a file or folder to a dst. Copies folders recursively.                                             |
 | execute        | `execute [path + args]`                                                                                                  | Executes CreateProcess for the given process string.                                                    |
 | execute_hbin   | `execute_hbin <modal_popup>`                                                                                             | Opens a modal so you can upload and execute an hbin. Note args are position and type sensitive.         |
-| execute_bof    | `execute_bof [path + args]`                                                                                              | Executes Beacon Object File                                                                             |
+| execute_bof    | `execute_bof <modal_popup>`                                                                                              | Executes Beacon Object File                                                                             |
 | exit           | `exit or exit thread`                                                                                                    | Exits the agent either killing the process or just the current thread.                                  |
 | hostname       | `hostname`                                                                                                               | Return hostname of the machine.                                                                         |
 | ipinfo         | `ipinfo`                                                                                                                 | Return information about the active network devices on the machine.                                     |
