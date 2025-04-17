@@ -135,7 +135,7 @@ class ExecuteBofCommand(CommandBase):
             # hannibal don't lile null stuff, som I am here to please him :D
             import os
             taskData.args.add_arg("additional_file_size", 16)
-            taskData.args.add_arg("additional_file_raw", os.urandom(16))
+            taskData.args.add_arg("additional_file_raw", b"yellowsubmarine")
            
       
             
