@@ -135,7 +135,7 @@ class ExecuteBofCommand(CommandBase):
             import os
             taskData.args.add_arg("additional_file_size", 16)
             taskData.args.add_arg("additional_file_raw", os.urandom(16))
-            # raise Exception("Failed to get file contents: " + file_additional.Error)
+            raise Exception("Failed to get file contents: " + file_additional.Error)
         
         response.DisplayParams = ""
         
