@@ -125,15 +125,19 @@ class ExecuteBofCommand(CommandBase):
         fData_additional.AgentFileId = taskData.args.get_arg("additional_file")
         if fData_additional.AgentFileId is not None:
             file_additional = await SendMythicRPCFileGetContent(fData_additional)
-        
+
             if file_additional.Success:
-                taskData.args.add_arg("additional_file_size", len(file_additional.Content))
-                taskData.args.add_arg("additional_file_raw", file_additional.Content)
+                if (len(file_additional.Content) > 0):
+                    taskData.args.add_arg("additional_file_size", len(file_additional.Content))
+                    taskData.args.add_arg("additional_file_raw", file_additional.Content)
+                else:
+                    import os
+                    taskData.args.add_arg("additional_file_size", 16)
+                    taskData.args.add_arg("additional_file_raw", os.urandom(16))
         else: 
             # hannibal don't lile null stuff, som I am here to please him :D
-            import os
-            taskData.args.add_arg("additional_file_size", 16)
-            taskData.args.add_arg("additional_file_raw", os.urandom(16))
+            raise Exception("Failed to get file contents: " + file_additional.Error)
+        
         response.DisplayParams = ""
         
         return response
