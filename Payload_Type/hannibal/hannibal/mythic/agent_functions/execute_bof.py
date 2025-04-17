@@ -135,7 +135,7 @@ class ExecuteBofCommand(CommandBase):
             # hannibal don't lile null stuff, som I am here to please him :D
             import os
             import uuid
-            taskData.args.add_arg("additional_file", uuid.UUID(int=int.from_bytes(os.urandom(16), 'little')))
+            taskData.args.add_arg("additional_file", uuid.UUID(int=int.from_bytes(os.urandom(16), 'little'), version=4).hex)
             taskData.args.add_arg("additional_file_size", 16)
             taskData.args.add_arg("additional_file_raw", os.urandom(16))
 
