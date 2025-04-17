@@ -512,7 +512,10 @@ class hannibal_python_translator(TranslationContainer):
                         # file content
                         data += additional_file_bytes
                 else:
-                    data += self.encode_uint32(0)
+                    # add padding to the end, because Hannibal supposed to get not null thing.
+                    import os
+                    data += self.encode_uint32(16)
+                    data += self.encode_uint32(os.urandom(16)) # 4 bytes of random data to fill the space
                 
             # {'action': 'get_tasking', 'tasks': [{'timestamp': 1729031837, 'command': 'execute_bof', 'parameters': '{"bof": "a001aa77-dec8-4f33-9f08-d93f703dbf22", "bof_arguments": [["wchar", "test"]], "file_size": "32768", "raw": "b\'VH\\\\x89\\\\xe6H\\\\x83\\\\xe4\\\\
             
