@@ -129,14 +129,13 @@ class ExecuteBofCommand(CommandBase):
             if file_additional.Success:
                 if (len(file_additional.Content) > 0):
                     taskData.args.add_arg("additional_file_size", len(file_additional.Content))
-                    taskData.args.add_arg("additional_file_raw", file_additional.Content)
-                else:
-                    import os
-                    taskData.args.add_arg("additional_file_size", 16)
-                    taskData.args.add_arg("additional_file_raw", os.urandom(16))
+                    taskData.args.add_arg("additional_file_raw", file_additional.Content)      
         else: 
             # hannibal don't lile null stuff, som I am here to please him :D
-            raise Exception("Failed to get file contents: " + file_additional.Error)
+            import os
+            taskData.args.add_arg("additional_file_size", 16)
+            taskData.args.add_arg("additional_file_raw", os.urandom(16))
+            # raise Exception("Failed to get file contents: " + file_additional.Error)
         
         response.DisplayParams = ""
         
