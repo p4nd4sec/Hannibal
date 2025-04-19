@@ -32,7 +32,7 @@ Mode                 LastWriteTime         Length Name
 -a---           4/17/2025 11:04 AM        1064378 hannibal.exe
 
 ```
-When an object file is weaponized to include implementations of malicious functions, they are Beacon Object Files. When we say "run a BOF", that means we are doing the job of a linker. Our implementation of `execute_bof` in Hannibal is doing the exact same thing: parsing the defined functions, link the import tables to the correct function at runtime, etc.; and finally, execute it with the functions defined inside. 
+When an object file is weaponized to include implementations of malicious functions, it becomes Beacon Object Files. When we say "run a BOF", that means we are doing the job of a linker. Our implementation of `execute_bof` in Hannibal is doing the exact same thing: parsing the defined functions, link the import tables to the correct function at runtime, etc.; and finally, execute it with the functions defined inside. 
 
 ### Why BOF? 
 
