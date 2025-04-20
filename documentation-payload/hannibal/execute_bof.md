@@ -6,7 +6,7 @@ weight = 100
 
 ## `execute_bof`: Execute Beacon Object File from Hannibal agents
 
-This command are developed for executing Beacon Object File in the Hannibal agents, with a flexible additional arguments, or additional payloads. 
+This command is developed for executing Beacon Object File in the Hannibal agents, with a flexible additional arguments, or additional payloads. 
 
 ### Beacon Object File (BOF)
 
@@ -17,7 +17,7 @@ Beacon Object File (BOF), at its core, is in the format of an object file. This 
 These object files contains information about functions in the binaries, imports/exports, and also implementations of those functions. Object files in general are not supposed to run as a program, but as inputs for linker to create an executable file. Therefore, the file size of an object file is relatively much smaller comparing to final executable.
 
 ```
-PS .\hannibal.o                                                                                                     
+PS ls .\hannibal.o                                                                                                     
     Directory: ...
 
 Mode                 LastWriteTime         Length Name
@@ -32,7 +32,7 @@ Mode                 LastWriteTime         Length Name
 -a---           4/17/2025 11:04 AM        1064378 hannibal.exe
 
 ```
-When an object file is weaponized to include implementations of malicious functions, it becomes Beacon Object Files. When we say "run a BOF", that means we are doing the job of a linker. Our implementation of `execute_bof` in Hannibal is doing the exact same thing: parsing the defined functions, link the import tables to the correct function at runtime, etc.; and finally, execute it with the functions defined inside. 
+When an object file is weaponized to include implementations of malicious functions, it becomes a Beacon Object File. When we say "run a BOF", it means that we are doing the job of a linker. Our implementation of `execute_bof` in Hannibal is doing the exact same thing: parsing the defined functions, link the import tables to the correct function at runtime, etc.; and finally, execute it with the functions defined inside. 
 
 ### Why BOF? 
 
@@ -43,7 +43,7 @@ As you may noticed, there is one another function in Hannibal agent: `execute_hb
 | **`execute_bof`**  | + Quick development, directly derived from normal C/C++ compilation.<br>+ A lot of open source BOFs are ready to test & modify.<br>+ Easy change the structs/parameters/etc. as we need during operations. | + Need a COFF loader.<br>+ May drop more signatures for detection.                                                                                                                      |
 | **`execute_hbin`** | + Full control to what we can do, as it is shellcode.<br>+ Smaller payload than BOFs<br>+ No COFF parser needed.<br>+ Porting BOFs to shellcode is relatively easy.                                        | + There are open-source BOFs already, require more work to port.<br>+ Very sensitive to struct changes during development of future Hannibal build.<br>+ Limitation of PIC shellcode 🫠 |
 
-So, in general, the quick development, easy to use and build of BOF will trade-off with somewhat more complexity in implementation of agent, which will increase the size of the Hannibal agent shellcode. However, we think that in some cases, we need complex operations, running a BOF will reduce our headache 🤯. 
+So, in general, the quick development, easy to use and build features of BOF will trade-off with somewhat more complexity in implementation of agent, which will increase the size of the Hannibal agent shellcode. However, we think that in some cases, we need complex operations, running a BOF will reduce our headache 🤯. 
 
 ## How to use 
 
