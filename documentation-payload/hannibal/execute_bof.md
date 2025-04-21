@@ -160,7 +160,7 @@ make -f ./debug_makefile
 
 + Step into the `call r10` instruction, now you have navigated to the BOF code! You can create function and do the debug as you want :)
 
-#### Debugging the Hannibal source code 
+#### Debugging the Hannibal shellcode payload
 
 As Hannibal is a PIC shellcode, sometimes, very likely your BOF will get some restrictions, or you are developing it the wrong way, etc. Well..., this will get more tricky. For this task, my personal favorite workflow is:
 
