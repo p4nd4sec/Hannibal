@@ -122,4 +122,54 @@ For the above test BOF, with above parameters, here is the response you get back
 
 > I have discovered a truly marvelous documentation of this, which this margin is too narrow to contain. (h114mx001)
 
-TODO: continue this hehe
+### Development 
+
+To write a new BoF file, you will need...
+
+### Debugging 
+
+#### Before releasing the payload builder 
+
+When you are trying to develop a BoF, you should: 
+
+1. Building a Hannibal executable
+
++ Using the `debug_makefile` in `Payload_Type\hannibal\hannibal\agent_code\Hannibal`, to generate a Hannibal executable in `\bin\Hannibal.exe`.
+
+```powershell
+make -f ./debug_makefile
+```
++ Remember to change the key in `Payload_Type\hannibal\hannibal\agent_code\Hannibal\include\config.h` into some key that is generated before by Mythic. 
+
+```c
+#define CONFIG_ENCRYPT_KEY { 245, 2, 183, 27, 24, 12, 93, 140, 124, 195, 36, 239, 248, 153, 211, 162, 204, 148, 127, 120, 146, 21, 13, 205, 219, 236, 53, 90, 152, 171, 79, 193 }
+```
+
++ You can have one by navigating to `Payload` tab, selecting a generated Hannibal payload and convert the Base64 key into the `unsigned byte` C-style array.
+
+![Keys](./attachments/images/keys.png)
+
+2. Using debug toolings of your favorite to debug this `Hannibal.exe`. For us, we will use IDA Free. 
+
++ First, load the `Hannibal.exe` binary, and put a debugger breakpoint in `ObjectExecute+0x2A7`.
++ Debug it! Feels free :) 
++ Now, comeback to C2 server and task a `execute_bof`.
++ After a while, the debugger breakpoint will hit and you can map the source code to get source view. 
+
+![](./attachments/images/map.png)
+
++ Step into the `call r10` instruction, now you have navigated to the BOF code! You can create function and do the debug as you want :)
+
+#### Debugging the Hannibal source code 
+
+As Hannibal is a PIC shellcode, sometimes, very likely your BOF will get some restrictions, or you are developing it the wrong way, etc. Well..., this will get more tricky. For this task, my personal favorite workflow is:
+
++ Load the object file to IDA/Binja 
+
++ Use [`BlobRunner`](https://github.com/OALabs/BlobRunner) to load the shellcode, and use debugger (x64dbg/WinDbg/etc.) to debug BlobRunner
+  + At the moment you load the source code, `BlobRunner` will show the entry point of the new thread for shellcode. Put a breakpoint there. 
+  + The `call r10` instruction to get to BOF code is in `image_base + 0x5907` for our current build, you can get the base and calculate the address and put breakpoint there. 
+  
++ Continue the shellcode loader, and if thing is getting well, you can get a debugger breakpoint :)
+
+This is not likely the best workflow to debug Hannibal, or the BOF. But if it works it works :)
