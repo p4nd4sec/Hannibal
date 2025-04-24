@@ -78,6 +78,8 @@ SECTION_CODE PVOID ObjectResolveSymbol(char* task_uuid, LPCWSTR buffer_message, 
 			Resolved = ParseString;
 		} else if (pic_strcmp("ParseWideString", Symbol) == 0) {
 			Resolved = ParseWideString;
+		} else if (pic_strcmp("BeaconCharToWideString", Symbol) == 0){
+			Resolved = BeaconCharToWideString;
 		}
 	} else {
 		//

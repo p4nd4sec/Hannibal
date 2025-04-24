@@ -30,3 +30,4 @@ int BeaconSprintf(char* dest, const char* format, ...);
 int ParseInt32(PBYTE* args);
 char* ParseString(PBYTE* args);
 LPCWSTR ParseWideString(PBYTE* args);
+void BeaconCharToWideString(char* str, wchar_t* wideStr);

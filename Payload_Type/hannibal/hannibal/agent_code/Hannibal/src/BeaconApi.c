@@ -614,4 +614,21 @@ LPCWSTR ParseWideString(PBYTE* args) {
     *args += (length + 1) * sizeof(WCHAR); // Move past wide string and null terminator
     return string;
 }
+void BeaconCharToWideString(char* str, wchar_t* wideStr) {
+    if (str == NULL || wideStr == NULL) {
+        return; // Invalid input
+    }
+    int length = strlen(str);
+    if (wideStr == NULL) {
+        return NULL; // Memory allocation failed
+    }
+    
+    for (int i = 0; i < length; i++) {
+        wideStr[i] = (wchar_t)str[i];
+    }
+    wideStr[length] = L'\0'; // Null-terminate the wide string
+    
+    return;
+
+}
 #pragma GCC pop_options
