@@ -524,6 +524,9 @@ class hannibal_python_translator(TranslationContainer):
                     # V 
                     data += encode_file("additional_file_" + str(i) + "_raw")
                 
+                with open("/tmp/test.bin", "wb") as f: 
+                    f.write(data)
+                f.close()
                 # if params["additional_file"]: 
                 #     raw_content = params["additional_file_raw"]
                 #     if raw_content is not None: 
