@@ -1,6 +1,6 @@
 from mythic_container.MythicCommandBase import *  
 from mythic_container.MythicRPC import *
-
+import asyncio
 class ExecuteBofArguments(TaskArguments):
     def __init__(self, command_line, **kwargs): 
         super().__init__(command_line, **kwargs)
@@ -105,6 +105,24 @@ class ExecuteBofCommand(CommandBase):
     )
 
     async def create_go_tasking(self, taskData: PTTaskMessageAllData) -> PTTaskCreateTaskingMessageResponse:
+        
+        async def getMultipleFilesFromMythic(agentFileIds: list):
+            import asyncio
+           
+            listOfFiles = [] 
+            for agentFileId in agentFileIds:
+                fAdditionalData = FileData()
+                fAdditionalData.AgentFileID = agentFileId
+                listOfFiles.append(fAdditionalData)
+                
+            try: 
+                await asyncio.gather(
+                    *[SendMythicRPCFileGetContent(fFile) for fFile in listOfFiles]
+                )
+            except Exception as e: 
+                logger.exception(f"[-] Failed to upload payload contents: {e}")    
+                return None
+                
         response = PTTaskCreateTaskingMessageResponse(
             TaskID=taskData.Task.ID,
             Success=True,
@@ -127,6 +145,9 @@ class ExecuteBofCommand(CommandBase):
         number_of_files = len(selected_files)
         
         # add dummy file in case no file is selected.
+        file_contents = await getMultipleFilesFromMythic(selected_files)
+        assert len(file_contents) == number_of_files, "Failed to get all file contents"
+        
         if (number_of_files == 0):
             import os
             import uuid
@@ -138,18 +159,11 @@ class ExecuteBofCommand(CommandBase):
             taskData.args.add_arg("additional_file_count", number_of_files)
             
         # if number of files is 0, this for should not be executed...
+        for i, file in enumerate(file_contents):
+            taskData.args.add_arg(f"additional_file_{i}", selected_files[i])
+            taskData.args.add_arg(f"additional_file_{i}_size", len(file_contents[i]))
+            taskData.args.add_arg(f"additional_file_{i}_raw", file_contents[i])
         
-        for i in range(number_of_files): 
-            fAdditional_Data = FileData()
-            fAdditional_Data.AgentFileID = selected_files[i]
-            additional_file = await SendMythicRPCFileGetContent(fAdditional_Data)
-            
-            if additional_file.Success: 
-                if (len(additional_file.Content) > 0):
-                    # taskData.args.add_arg(f"additional_file_{i}", file.Content)
-                    taskData.args.add_arg(f"additional_file_{i}_size", len(additional_file.Content))
-                    taskData.args.add_arg(f"additional_file_{i}_raw", additional_file.Content)
-            
         response.DisplayParams = ""
         
         return response
@@ -157,3 +171,4 @@ class ExecuteBofCommand(CommandBase):
     async def process_response(self, task: PTTaskMessageAllData, response: any) -> PTTaskProcessResponseMessageResponse:
         resp = PTTaskProcessResponseMessageResponse(TaskID=task.Task.ID, Success=True)
         return resp
+    
