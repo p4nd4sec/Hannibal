@@ -1,6 +1,5 @@
 from mythic_container.MythicCommandBase import *  
-from mythic_container.MythicRPC import *
-import asyncio
+from mythic_container.MythicRPC import * 
 class ExecuteBofArguments(TaskArguments):
     def __init__(self, command_line, **kwargs): 
         super().__init__(command_line, **kwargs)
@@ -116,9 +115,10 @@ class ExecuteBofCommand(CommandBase):
                 listOfFiles.append(fAdditionalData)
                 
             try: 
-                await asyncio.gather(
+                result = await asyncio.gather(
                     *[SendMythicRPCFileGetContent(fFile) for fFile in listOfFiles]
                 )
+                return result
             except Exception as e: 
                 logger.exception(f"[-] Failed to upload payload contents: {e}")    
                 return None
