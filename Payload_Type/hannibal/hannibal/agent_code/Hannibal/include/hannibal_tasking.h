@@ -140,14 +140,6 @@ typedef struct _CMD_EXECUTE_HBIN { // Agent > Controller
 //     int file_size;
 // } CMD_EXECUTE_BOF;
 
-typedef struct _CMD_EXECUTE_BOF {
-    PBYTE args;
-    int argc;
-    PBYTE bof;
-    int bof_size;
-    PFILE_ARGS file_args;
-} CMD_EXECUTE_BOF;
-
 typedef struct _FILE_CONTENT { 
     int file_size;
     PBYTE file_content;
@@ -159,6 +151,14 @@ typedef struct _FILE_ARGS {
     int number_of_files;
     PFILE_CONTENT file_content;
 } FILE_ARGS, *PFILE_ARGS;
+
+typedef struct _CMD_EXECUTE_BOF {
+    PBYTE args;
+    int argc;
+    PBYTE bof;
+    int bof_size;
+    PFILE_ARGS file_args;
+} CMD_EXECUTE_BOF;
 
 #endif
 

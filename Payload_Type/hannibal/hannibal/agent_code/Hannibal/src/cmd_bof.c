@@ -506,6 +506,7 @@ SECTION_CODE int do_bof(char* task_uuid, PBYTE pbof_content, PBYTE args, int arg
 }
 
 SECTION_CODE void cleanup_file_args(PFILE_ARGS file_args) {
+	HANNIBAL_INSTANCE_PTR
 	PFILE_CONTENT current_file = file_args->file_content;
 	PFILE_CONTENT next_file = NULL;
 
