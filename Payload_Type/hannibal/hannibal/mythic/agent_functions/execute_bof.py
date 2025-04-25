@@ -1,5 +1,45 @@
 from mythic_container.MythicCommandBase import *  
 from mythic_container.MythicRPC import * 
+import aiohttp
+import asyncio 
+from mythic_container.config import settings 
+
+async def getFileFromMythicWithSession(msg: MythicRPCFileGetContentMessage, session) -> MythicRPCFileGetContentMessageResponse:
+    try:
+        url = f"http://{settings.get('mythic_server_host')}:{settings.get('mythic_server_port', 17443)}/direct/download/{agentFileId}"
+        async with session.get(url, ssl=False) as resp:
+                if resp.status == 200:
+                    responseData = await resp.read()
+                    return responseData        
+    except Exception as e:
+        logger.exception(f"[-] Failed to upload payload contents: {e}")
+        return None
+
+async def SendMythicRPCFileGetContentWithSession(msg: MythicRPCFileGetContentMessage, session) -> MythicRPCFileGetContentMessageResponse: 
+    content = await getFileFromMythicWithSession(agentFileId=msg.AgentFileId, session=session)
+
+    return MythicRPCFileGetContentMessageResponse(
+        success=content is not None,
+        error="Failed to fetch file from Mythic" if content is None else "",
+        content=content
+    )
+
+async def getMultipleFilesFromMythic(agentFileIds: list) -> list:
+    listOfFiles = []
+    
+    for agentFileId in agentFileIds:
+        fAdditionalData = FileData()
+        fAdditionalData.AgentFileID = agentFileId
+        listOfFiles.append(fAdditionalData)
+    try: 
+        async with aiohttp.ClientSession() as session:
+            return await asyncio.gather(
+                *[getFileFromMythicWithSession(f, session) for f in listOfFiles]
+            )
+    except Exception as e:
+        logger.exception(f"[-] Failed to upload payload contents: {e}")
+        return None
+
 class ExecuteBofArguments(TaskArguments):
     def __init__(self, command_line, **kwargs): 
         super().__init__(command_line, **kwargs)
@@ -104,25 +144,7 @@ class ExecuteBofCommand(CommandBase):
     )
 
     async def create_go_tasking(self, taskData: PTTaskMessageAllData) -> PTTaskCreateTaskingMessageResponse:
-        
-        async def getMultipleFilesFromMythic(agentFileIds: list):
-            import asyncio
-           
-            listOfFiles = [] 
-            for agentFileId in agentFileIds:
-                fAdditionalData = FileData()
-                fAdditionalData.AgentFileID = agentFileId
-                listOfFiles.append(fAdditionalData)
-                
-            try: 
-                result = await asyncio.gather(
-                    *[SendMythicRPCFileGetContent(fFile) for fFile in listOfFiles]
-                )
-                return result
-            except Exception as e: 
-                logger.exception(f"[-] Failed to upload payload contents: {e}")    
-                return None
-                
+                        
         response = PTTaskCreateTaskingMessageResponse(
             TaskID=taskData.Task.ID,
             Success=True,
