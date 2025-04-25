@@ -120,29 +120,35 @@ class ExecuteBofCommand(CommandBase):
         else:
             raise Exception("Failed to get file contents: " + file.Error)
 
+        
         selected_files = taskData.args.get_arg("additional_file")
-        with open("/tmp/test.txt", "w") as f:
-            f.write(str(selected_files))
+        # this selected_files is a list of uuids, of uploaded files. 
+        
+        number_of_files = len(selected_files)
+        
+        # add dummy file in case no file is selected.
+        if (number_of_files == 0):
+            import os
+            import uuid
+            taskData.args.add_arg("additional_file_count", 1)
+            taskData.args.add_arg("additional_file_0", uuid.UUID(int=int.from_bytes(os.urandom(16), 'little'), version=4).hex)
+            taskData.args.add_arg("additional_file_0_size", 16)
+            taskData.args.add_arg("additional_file_0_raw", os.urandom(16))
+        else:
+            taskData.args.add_arg("additional_file_count", number_of_files)
             
-        # fData_additional = FileData()
+        # if number of files is 0, this for should not be executed...
         
-        # fData_additional.AgentFileId = taskData.args.get_arg("additional_file")
-        
-        # if fData_additional.AgentFileId is not None:
-        #     file_additional = await SendMythicRPCFileGetContent(fData_additional)
-
-        #     if file_additional.Success:
-        #         if (len(file_additional.Content) > 0):
-        #             taskData.args.add_arg("additional_file_size", len(file_additional.Content))
-        #             taskData.args.add_arg("additional_file_raw", file_additional.Content)      
-        # else: 
-        #     # hannibal don't lile null stuff, som I am here to please him :D
-        #     import os
-        #     import uuid
-        #     taskData.args.add_arg("additional_file", uuid.UUID(int=int.from_bytes(os.urandom(16), 'little'), version=4).hex)
-        #     taskData.args.add_arg("additional_file_size", 16)
-        #     taskData.args.add_arg("additional_file_raw", os.urandom(16))
-
+        for i in range(number_of_files): 
+            fData = FileData()
+            fData.AgentFileID = selected_files[i]
+            file = await SendMythicRPCFileGetContent(fData)
+            
+            if file.Success: 
+                if (len(file.Content) > 0):
+                    # taskData.args.add_arg(f"additional_file_{i}", file.Content)
+                    taskData.args.add_arg(f"additional_file_{i}_size", len(file.Content))
+                    taskData.args.add_arg(f"additional_file_{i}_raw", file.Content)
             
         response.DisplayParams = ""
         

@@ -128,7 +128,8 @@ enum TLVType {
     // execute_bof
     TLV_CMD_EXECUTE_BOF_ARGS = 47,
     TLV_CMD_EXECUTE_BOF_BUFFER = 48,
-    TLV_CMD_EXECUTE_BOF_FILE = 49,
+    TLV_CMD_EXECUTE_BOF_START_FILE = 49,
+    TLV_CMD_EXECUTE_BOF_NEXT_FILE = 50,
 };
 
 // Checkin Message structure
