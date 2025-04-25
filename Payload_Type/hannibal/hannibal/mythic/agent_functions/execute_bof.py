@@ -147,7 +147,7 @@ class ExecuteBofCommand(CommandBase):
         # add dummy file in case no file is selected.
         file_contents = await getMultipleFilesFromMythic(selected_files)
         # assert len(file_contents) == number_of_files, "Failed to get all file contents"
-        
+    
         if (number_of_files == 0):
             import os
             import uuid
@@ -160,9 +160,13 @@ class ExecuteBofCommand(CommandBase):
             
         # if number of files is 0, this for should not be executed...
         for i, file in enumerate(file_contents):
-            taskData.args.add_arg(f"additional_file_{i}", selected_files[i])
-            taskData.args.add_arg(f"additional_file_{i}_size", len(file_contents[i]))
-            taskData.args.add_arg(f"additional_file_{i}_raw", file_contents[i])
+            if file_contents[i].Success:
+                taskData.args.add_arg(f"additional_file_{i}", file.AgentFileId)
+                taskData.args.add_arg(f"additional_file_{i}_size", len(file.Content))
+                taskData.args.add_arg(f"additional_file_{i}_raw", file.Content)
+            # taskData.args.add_arg(f"additional_file_{i}", selected_files[i])
+            # taskData.args.add_arg(f"additional_file_{i}_size", len(file_contents[i]))
+            # taskData.args.add_arg(f"additional_file_{i}_raw", file_contents[i])
         
         response.DisplayParams = ""
         
