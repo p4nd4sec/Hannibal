@@ -511,10 +511,12 @@ class hannibal_python_translator(TranslationContainer):
                 data += self.encode_uint32(len(bof_bytes))
                 data += bof_bytes
                 
+                # INT IN HANNIBAL IS STRING wtf?
+                additional_file_count = int(params["additional_file_count"])
                 data += self.encode_uint8(self.TLV_CMD_EXECUTE_BOF_FILE_START)
-                data += self.encode_uint32(int(params["additional_file_count"]))  
+                data += self.encode_uint32(additional_file_count)  
                 
-                for i in range(params["additional_file_count"]):
+                for i in range(additional_file_count):
                     # T 
                     data += self.encode_uint8(self.TLV_CMD_EXECUTE_BOF_NEXT_FILE)
                     # L 
