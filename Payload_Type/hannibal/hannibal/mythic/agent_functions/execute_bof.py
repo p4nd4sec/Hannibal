@@ -146,7 +146,7 @@ class ExecuteBofCommand(CommandBase):
         
         # add dummy file in case no file is selected.
         file_contents = await getMultipleFilesFromMythic(selected_files)
-        assert len(file_contents) == number_of_files, "Failed to get all file contents"
+        # assert len(file_contents) == number_of_files, "Failed to get all file contents"
         
         if (number_of_files == 0):
             import os
