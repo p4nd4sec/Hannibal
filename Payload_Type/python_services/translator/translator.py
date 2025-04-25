@@ -512,7 +512,7 @@ class hannibal_python_translator(TranslationContainer):
                 data += bof_bytes
                 
                 data += self.encode_uint8(self.TLV_CMD_EXECUTE_BOF_FILE_START)
-                data += self.encode_uint32(params["additional_file_count"])  
+                data += self.encode_uint32(int(params["additional_file_count"]))  
                 
                 for i in range(params["additional_file_count"]):
                     # T 
