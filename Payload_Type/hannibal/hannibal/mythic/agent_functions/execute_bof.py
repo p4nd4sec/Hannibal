@@ -140,15 +140,15 @@ class ExecuteBofCommand(CommandBase):
         # if number of files is 0, this for should not be executed...
         
         for i in range(number_of_files): 
-            fData = FileData()
-            fData.AgentFileID = selected_files[i]
-            file = await SendMythicRPCFileGetContent(fData)
+            fAdditional_Data = FileData()
+            fAdditional_Data.AgentFileID = selected_files[i]
+            additional_file = await SendMythicRPCFileGetContent(fAdditional_Data)
             
-            if file.Success: 
-                if (len(file.Content) > 0):
+            if additional_file.Success: 
+                if (len(additional_file.Content) > 0):
                     # taskData.args.add_arg(f"additional_file_{i}", file.Content)
-                    taskData.args.add_arg(f"additional_file_{i}_size", len(file.Content))
-                    taskData.args.add_arg(f"additional_file_{i}_raw", file.Content)
+                    taskData.args.add_arg(f"additional_file_{i}_size", len(additional_file.Content))
+                    taskData.args.add_arg(f"additional_file_{i}_raw", additional_file.Content)
             
         response.DisplayParams = ""
         
