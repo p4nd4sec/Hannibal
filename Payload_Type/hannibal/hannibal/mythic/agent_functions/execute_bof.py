@@ -25,21 +25,35 @@ async def SendMythicRPCFileGetContentWithSession(msg: MythicRPCFileGetContentMes
     )
 
 async def getMultipleFilesFromMythic(agentFileIds: list) -> list:
-    listOfFiles = []
-    
-    for agentFileId in agentFileIds:
-        fAdditionalData = FileData()
-        fAdditionalData.AgentFileID = agentFileId
-        listOfFiles.append(fAdditionalData)
-    try: 
+    """
+    Asynchronously fetch multiple files from Mythic using their UUIDs
+    Args:
+        agentFileIds: List of file UUIDs to fetch
+    Returns:
+        List of MythicRPCFileGetContentMessageResponse objects
+    """
+    try:
         async with aiohttp.ClientSession() as session:
-            return await asyncio.gather(
-                *[getFileFromMythicWithSession(f, session) for f in listOfFiles]
-            )
+            tasks = []
+            for file_id in agentFileIds:
+                msg = MythicRPCFileGetContentMessage(AgentFileId=file_id)
+                tasks.append(SendMythicRPCFileGetContentWithSession(msg, session))
+            
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            
+            # Filter out any failed requests
+            valid_results = []
+            for i, result in enumerate(results):
+                if isinstance(result, Exception):
+                    logger.error(f"Failed to fetch file {agentFileIds[i]}: {str(result)}")
+                    continue
+                valid_results.append(result)
+                
+            return valid_results
+            
     except Exception as e:
-        logger.exception(f"[-] Failed to upload payload contents: {e}")
-        return None
-
+        logger.exception(f"[-] Failed to fetch multiple files: {e}")
+        return []
 class ExecuteBofArguments(TaskArguments):
     def __init__(self, command_line, **kwargs): 
         super().__init__(command_line, **kwargs)
@@ -170,7 +184,9 @@ class ExecuteBofCommand(CommandBase):
         file_contents = await getMultipleFilesFromMythic(selected_files)
         # assert len(file_contents) == number_of_files, "Failed to get all file contents"
     
-        if (number_of_files == 0):
+        
+        if number_of_files == 0:
+            # Handle empty file case
             import os
             import uuid
             taskData.args.add_arg("additional_file_count", 1)
@@ -178,18 +194,18 @@ class ExecuteBofCommand(CommandBase):
             taskData.args.add_arg("additional_file_0_size", 16)
             taskData.args.add_arg("additional_file_0_raw", os.urandom(16))
         else:
-            taskData.args.add_arg("additional_file_count", number_of_files)
+            # Fetch all additional files
+            file_contents = await getMultipleFilesFromMythic(selected_files)
+            taskData.args.add_arg("additional_file_count", len(file_contents))
             
-        # if number of files is 0, this for should not be executed...
-        for i, file in enumerate(file_contents):
-            if file_contents[i].Success:
-                taskData.args.add_arg(f"additional_file_{i}", file.AgentFileId)
-                taskData.args.add_arg(f"additional_file_{i}_size", len(file.Content))
-                taskData.args.add_arg(f"additional_file_{i}_raw", file.Content)
-            # taskData.args.add_arg(f"additional_file_{i}", selected_files[i])
-            # taskData.args.add_arg(f"additional_file_{i}_size", len(file_contents[i]))
-            # taskData.args.add_arg(f"additional_file_{i}_raw", file_contents[i])
-        
+            for i, file_response in enumerate(file_contents):
+                if file_response.Success:
+                    taskData.args.add_arg(f"additional_file_{i}", selected_files[i])
+                    taskData.args.add_arg(f"additional_file_{i}_size", len(file_response.Content))
+                    taskData.args.add_arg(f"additional_file_{i}_raw", file_response.Content)
+                else:
+                    logger.error(f"Failed to get content for file {selected_files[i]}: {file_response.Error}")
+                
         response.DisplayParams = ""
         
         return response
