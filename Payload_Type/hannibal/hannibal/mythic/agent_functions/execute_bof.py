@@ -4,13 +4,13 @@ import aiohttp
 import asyncio 
 from mythic_container.config import settings 
 
-async def getFileFromMythicWithSession(msg: MythicRPCFileGetContentMessage, session) -> MythicRPCFileGetContentMessageResponse:
+async def getFileFromMythicWithSession(agentFileId, session) -> bytes:
     try:
         url = f"http://{settings.get('mythic_server_host')}:{settings.get('mythic_server_port', 17443)}/direct/download/{agentFileId}"
         async with session.get(url, ssl=False) as resp:
-                if resp.status == 200:
-                    responseData = await resp.read()
-                    return responseData        
+            if resp.status == 200:
+                responseData = await resp.read()
+                return responseData        
     except Exception as e:
         logger.exception(f"[-] Failed to upload payload contents: {e}")
         return None
@@ -123,7 +123,7 @@ class ExecuteBofArguments(TaskArguments):
         
         return argumentResponse
     
-    async def parse_arguments(self):
+    async def parse_arguments(self):  
         if len(self.command_line) > 0:
             if self.command_line[0] == "{":
                 self.load_args_from_json_string(self.command_line)
