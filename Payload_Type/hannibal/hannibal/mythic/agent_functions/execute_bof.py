@@ -7,7 +7,7 @@ class ExecuteBofArguments(TaskArguments):
         
         self.args = [
             CommandParameter(
-                name="bof",
+                name="bof", 
                 type=ParameterType.File,
                 description="Upload BoF file to be executed. Be aware a UINT32 cannot be > 4294967295.",
                 parameter_group_info=[
@@ -40,10 +40,10 @@ class ExecuteBofArguments(TaskArguments):
             CommandParameter(
                 name="additional_file",
                 cli_name="AdditionalFile",
-                display_name="Additional File (Optional)",
+                display_name="Additional File(s)",
                 default_value=None,
-                type=ParameterType.File,
-                description="Additional file to be passed along to the BoF. Optional.",
+                type=ParameterType.FileMultiple,
+                description="Additional file(s) to be passed along to the BoF. Optional.",
                 parameter_group_info=[
                     ParameterGroupInfo(
                         required=False,
@@ -120,24 +120,28 @@ class ExecuteBofCommand(CommandBase):
         else:
             raise Exception("Failed to get file contents: " + file.Error)
 
-        fData_additional = FileData()
+        selected_files = taskData.args.get_arg("additional_file")
+        with open("/tmp/test.txt", "w") as f:
+            f.write(str(selected_files))
+            
+        # fData_additional = FileData()
         
-        fData_additional.AgentFileId = taskData.args.get_arg("additional_file")
-      
-        if fData_additional.AgentFileId is not None:
-            file_additional = await SendMythicRPCFileGetContent(fData_additional)
+        # fData_additional.AgentFileId = taskData.args.get_arg("additional_file")
+        
+        # if fData_additional.AgentFileId is not None:
+        #     file_additional = await SendMythicRPCFileGetContent(fData_additional)
 
-            if file_additional.Success:
-                if (len(file_additional.Content) > 0):
-                    taskData.args.add_arg("additional_file_size", len(file_additional.Content))
-                    taskData.args.add_arg("additional_file_raw", file_additional.Content)      
-        else: 
-            # hannibal don't lile null stuff, som I am here to please him :D
-            import os
-            import uuid
-            taskData.args.add_arg("additional_file", uuid.UUID(int=int.from_bytes(os.urandom(16), 'little'), version=4).hex)
-            taskData.args.add_arg("additional_file_size", 16)
-            taskData.args.add_arg("additional_file_raw", os.urandom(16))
+        #     if file_additional.Success:
+        #         if (len(file_additional.Content) > 0):
+        #             taskData.args.add_arg("additional_file_size", len(file_additional.Content))
+        #             taskData.args.add_arg("additional_file_raw", file_additional.Content)      
+        # else: 
+        #     # hannibal don't lile null stuff, som I am here to please him :D
+        #     import os
+        #     import uuid
+        #     taskData.args.add_arg("additional_file", uuid.UUID(int=int.from_bytes(os.urandom(16), 'little'), version=4).hex)
+        #     taskData.args.add_arg("additional_file_size", 16)
+        #     taskData.args.add_arg("additional_file_raw", os.urandom(16))
 
             
         response.DisplayParams = ""
