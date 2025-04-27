@@ -1,13 +1,66 @@
 from mythic_container.MythicCommandBase import *  
-from mythic_container.MythicRPC import *
+from mythic_container.MythicRPC import * 
+import aiohttp
+import asyncio 
+from mythic_container.config import settings 
 
+async def getFileFromMythicWithSession(agentFileId, session) -> bytes:
+    try:
+        url = f"http://{settings.get('mythic_server_host')}:{settings.get('mythic_server_port', 17443)}/direct/download/{agentFileId}"
+        async with session.get(url, ssl=False) as resp:
+            if resp.status == 200:
+                responseData = await resp.read()
+                return responseData        
+    except Exception as e:
+        logger.exception(f"[-] Failed to upload payload contents: {e}")
+        return None
+
+async def SendMythicRPCFileGetContentWithSession(msg: MythicRPCFileGetContentMessage, session) -> MythicRPCFileGetContentMessageResponse: 
+    content = await getFileFromMythicWithSession(agentFileId=msg.AgentFileId, session=session)
+
+    return MythicRPCFileGetContentMessageResponse(
+        success=content is not None,
+        error="Failed to fetch file from Mythic" if content is None else "",
+        content=content
+    )
+
+async def getMultipleFilesFromMythic(agentFileIds: list) -> list:
+    """
+    Asynchronously fetch multiple files from Mythic using their UUIDs
+    Args:
+        agentFileIds: List of file UUIDs to fetch
+    Returns:
+        List of MythicRPCFileGetContentMessageResponse objects
+    """
+    try:
+        async with aiohttp.ClientSession() as session:
+            tasks = []
+            for file_id in agentFileIds:
+                msg = MythicRPCFileGetContentMessage(AgentFileId=file_id)
+                tasks.append(SendMythicRPCFileGetContentWithSession(msg, session))
+            
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            
+            # Filter out any failed requests
+            valid_results = []
+            for i, result in enumerate(results):
+                if isinstance(result, Exception):
+                    logger.error(f"Failed to fetch file {agentFileIds[i]}: {str(result)}")
+                    continue
+                valid_results.append(result)
+                
+            return valid_results
+            
+    except Exception as e:
+        logger.exception(f"[-] Failed to fetch multiple files: {e}")
+        return []
 class ExecuteBofArguments(TaskArguments):
     def __init__(self, command_line, **kwargs): 
         super().__init__(command_line, **kwargs)
         
         self.args = [
             CommandParameter(
-                name="bof",
+                name="bof", 
                 type=ParameterType.File,
                 description="Upload BoF file to be executed. Be aware a UINT32 cannot be > 4294967295.",
                 parameter_group_info=[
@@ -40,10 +93,10 @@ class ExecuteBofArguments(TaskArguments):
             CommandParameter(
                 name="additional_file",
                 cli_name="AdditionalFile",
-                display_name="Additional File (Optional)",
+                display_name="Additional File(s)",
                 default_value=None,
-                type=ParameterType.File,
-                description="Additional file to be passed along to the BoF. Optional.",
+                type=ParameterType.FileMultiple,
+                description="Additional file(s) to be passed along to the BoF. Optional.",
                 parameter_group_info=[
                     ParameterGroupInfo(
                         required=False,
@@ -84,7 +137,7 @@ class ExecuteBofArguments(TaskArguments):
         
         return argumentResponse
     
-    async def parse_arguments(self):
+    async def parse_arguments(self):  
         if len(self.command_line) > 0:
             if self.command_line[0] == "{":
                 self.load_args_from_json_string(self.command_line)
@@ -105,6 +158,7 @@ class ExecuteBofCommand(CommandBase):
     )
 
     async def create_go_tasking(self, taskData: PTTaskMessageAllData) -> PTTaskCreateTaskingMessageResponse:
+                        
         response = PTTaskCreateTaskingMessageResponse(
             TaskID=taskData.Task.ID,
             Success=True,
@@ -120,26 +174,38 @@ class ExecuteBofCommand(CommandBase):
         else:
             raise Exception("Failed to get file contents: " + file.Error)
 
-        fData_additional = FileData()
         
-        fData_additional.AgentFileId = taskData.args.get_arg("additional_file")
-      
-        if fData_additional.AgentFileId is not None:
-            file_additional = await SendMythicRPCFileGetContent(fData_additional)
-
-            if file_additional.Success:
-                if (len(file_additional.Content) > 0):
-                    taskData.args.add_arg("additional_file_size", len(file_additional.Content))
-                    taskData.args.add_arg("additional_file_raw", file_additional.Content)      
-        else: 
-            # hannibal don't lile null stuff, som I am here to please him :D
+        selected_files = taskData.args.get_arg("additional_file")
+        # this selected_files is a list of uuids, of uploaded files. 
+        
+        number_of_files = len(selected_files)
+        
+        # add dummy file in case no file is selected.
+        file_contents = await getMultipleFilesFromMythic(selected_files)
+        # assert len(file_contents) == number_of_files, "Failed to get all file contents"
+    
+        
+        if number_of_files == 0:
+            # Handle empty file case
             import os
             import uuid
-            taskData.args.add_arg("additional_file", uuid.UUID(int=int.from_bytes(os.urandom(16), 'little'), version=4).hex)
-            taskData.args.add_arg("additional_file_size", 16)
-            taskData.args.add_arg("additional_file_raw", os.urandom(16))
-
+            taskData.args.add_arg("additional_file_count", 1)
+            taskData.args.add_arg("additional_file_0", uuid.UUID(int=int.from_bytes(os.urandom(16), 'little'), version=4).hex)
+            taskData.args.add_arg("additional_file_0_size", 16)
+            taskData.args.add_arg("additional_file_0_raw", os.urandom(16))
+        else:
+            # Fetch all additional files
+            file_contents = await getMultipleFilesFromMythic(selected_files)
+            taskData.args.add_arg("additional_file_count", len(file_contents))
             
+            for i, file_response in enumerate(file_contents):
+                if file_response.Success:
+                    taskData.args.add_arg(f"additional_file_{i}", selected_files[i])
+                    taskData.args.add_arg(f"additional_file_{i}_size", len(file_response.Content))
+                    taskData.args.add_arg(f"additional_file_{i}_raw", file_response.Content)
+                else:
+                    logger.error(f"Failed to get content for file {selected_files[i]}: {file_response.Error}")
+                
         response.DisplayParams = ""
         
         return response
@@ -147,3 +213,4 @@ class ExecuteBofCommand(CommandBase):
     async def process_response(self, task: PTTaskMessageAllData, response: any) -> PTTaskProcessResponseMessageResponse:
         resp = PTTaskProcessResponseMessageResponse(TaskID=task.Task.ID, Success=True)
         return resp
+    
