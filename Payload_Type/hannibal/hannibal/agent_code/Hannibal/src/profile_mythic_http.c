@@ -1189,7 +1189,7 @@ SECTION_CODE void deserialize_get_tasks_response(char *buffer)
                 
                 file_args->number_of_files = ReadUint32(&buffer);
                 
-                for (int i = 0; i < param3_uint32; i++) {
+                for (int i = 0; i < file_args->number_of_files; i++) {
                     tlv_type = ReadUint8(&buffer);
                     if (tlv_type == TLV_CMD_EXECUTE_BOF_NEXT_FILE) {
                         // temp1_lpvoid is the head of the linked list.
