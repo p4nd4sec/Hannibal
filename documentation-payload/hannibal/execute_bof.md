@@ -140,7 +140,19 @@ For the above test BOF, with above parameters, here is the response you get back
 
 ### Development 
 
-To write a new BoF file, you will need...
+To write a new BoF file, you will need to put the...
+
+#### FILE_ARGS traverse 
+
+```cpp
+BeaconWsprintf(output2, L"[+] Number of files: %d\n", file_args->number_of_files);
+int i = 0;
+PFILE_CONTENT current_file = (PFILE_CONTENT)file_args->file_content;
+while (current_file != NULL) {
+    BeaconWsprintf(output2 + pic_wcslen(output2), L"[+] File %d: Size: %d\n", i++, current_file->file_size);
+    current_file = (PFILE_CONTENT)current_file->next_file;
+}
+```
 
 ### Debugging 
 
