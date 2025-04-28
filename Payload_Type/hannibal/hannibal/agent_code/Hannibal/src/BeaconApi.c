@@ -618,7 +618,7 @@ void BeaconCharToWideString(char* str, wchar_t* wideStr) {
     if (str == NULL || wideStr == NULL) {
         return; // Invalid input
     }
-    int length = strlen(str);
+    int length = pic_strlen(str);
     if (wideStr == NULL) {
         return NULL; // Memory allocation failed
     }
