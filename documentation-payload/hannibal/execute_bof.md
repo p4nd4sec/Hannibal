@@ -1,5 +1,5 @@
 +++
-title = "Hannibal"
+title = "Execute Bof"
 chapter = true
 weight = 100
 +++
@@ -69,9 +69,9 @@ There are 03 parameters:
   + `int32`: A signed 32-bit integer. 
   + `string`: A normal C-style string. 
   + `wchar`: A `wchar_t` string. 
-+ `Additional File`: Additional file, could be served as the second stage payload. 
++ `Additional Files`: Additional file(s), could be served as the next stage payloads. 
 
-`Arguments` and `Additional File` are not required. However, for `Additional File`, due to some restriction in the mechanism of Hannibal shellcode agent to not having `NULL` payload, a random 16-byte gibberish will be added as a decoy. 
+`Arguments` and `Additional Files` are not required. However, for `Additional Files`, due to some restriction in the mechanism of Hannibal shellcode agent to not having `NULL` payload, a random 16-byte gibberish will be added as a decoy. 
 
 Next, just task it :D
 
@@ -80,13 +80,24 @@ Next, just task it :D
 Periodically, the victim's Hannibal agent will load new task. The task for `execute_bof` are loaded as this struct: 
 
 ```c
+typedef struct _FILE_CONTENT { 
+    int file_size;
+    PBYTE file_content;
+    struct _FILE_CONTENT* next_file; // pointer to the next file
+} FILE_CONTENT, *PFILE_CONTENT;
+
+typedef struct _FILE_ARGS {
+    // represent the list of files.
+    int number_of_files;
+    PFILE_CONTENT file_content;
+} FILE_ARGS, *PFILE_ARGS;
+
 typedef struct _CMD_EXECUTE_BOF {
     PBYTE args;
     int argc;
     PBYTE bof;
     int bof_size;
-    PBYTE file_content;
-    int file_size;
+    PFILE_ARGS file_args;
 } CMD_EXECUTE_BOF;
 ```
 
@@ -99,8 +110,13 @@ typedef struct _CMD_EXECUTE_BOF {
 + `int argc`: the length of `args`, in bytes. 
 + `PBYTE bof`: the BOF file. 
 + `int bof_size`: size of the BOF file.
-+ `PBYTE file_content`: the additional file. 
-+ `int file_size`: the additional file's size.
++ `PFILE_ARGS file_args`: the additional linked list of files. 
+  + `file_args->number_of_files`: the number of additional files available. 
+  + `file_args->file_content`: the head of the linked list of files.
+    + `file_content->file_size`: the size of the current file, in bytes.
+    + `file_content->file_content`: the content of the file
+    + `file_content->next_file`: the pointer to the next file in the linked list.
+
 
 Under the hood, the lifecycle of `execute_bof` could be summarized in this diagram: 
 
