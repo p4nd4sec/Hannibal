@@ -13,7 +13,7 @@ void BeaconDataParse(datap* parser, char* buffer, int size) {
     parser->buffer += 4;
 }
 
-int BeaconDataInt(datap* parser) {
+int BeaconDataInt32(datap* parser) {
     int fourbyteint = 0;
     if (parser->length < 4) {
         return 0;
@@ -577,7 +577,7 @@ int BeaconSprintf(char* dest, const char* format, ...) {
     return chars_written;
 }
 
-int ParseInt32(PBYTE* args) {
+int BeaconParseInt32(PBYTE* args) {
     int value = 0;
     memcpy(&value, *args, sizeof(int));
     *args += sizeof(int);
@@ -586,7 +586,7 @@ int ParseInt32(PBYTE* args) {
 
 #pragma GCC push_options
 #pragma GCC optimize ("O0")
-char* ParseString(PBYTE* args) {
+char* BeaconParseString(PBYTE* args) {
     int length = 0;
     PBYTE current = *args;
     
@@ -601,7 +601,7 @@ char* ParseString(PBYTE* args) {
     return string;
 }
 
-LPCWSTR ParseWideString(PBYTE* args) {
+LPCWSTR BeaconParseWideString(PBYTE* args) {
     int length = 0;
     PWCHAR current = (PWCHAR)*args;
     

@@ -15,20 +15,20 @@ typedef struct _MESSAGE_QUEUE {
 	LPCWSTR content; 
 	struct _MESSAGE_QUEUE* next;	
 } MESSAGE_QUEUE, *PMESSAGE_QUEUE;	
-typedef struct _FILE_CONTENT { 
-    int file_size;
-    PBYTE file_content;
-    struct _FILE_CONTENT* next_file; // pointer to the next file
-} FILE_CONTENT, *PFILE_CONTENT;
+// typedef struct _FILE_CONTENT { 
+//     int file_size;
+//     PBYTE file_content;
+//     struct _FILE_CONTENT* next_file; // pointer to the next file
+// } FILE_CONTENT, *PFILE_CONTENT;
 
-typedef struct _FILE_ARGS {
-    // represent the list of files.
-    int number_of_files;
-    PFILE_CONTENT file_content;
-} FILE_ARGS, *PFILE_ARGS;
+// typedef struct _FILE_ARGS {
+//     // represent the list of files.
+//     int number_of_files;
+//     PFILE_CONTENT file_content;
+// } FILE_ARGS, *PFILE_ARGS;
 
 void    BeaconDataParse(datap* parser, char* buffer, int size);
-int     BeaconDataInt(datap* parser);
+int     BeaconDataInt32(datap* parser);
 short   BeaconDataShort(datap* parser);
 int     BeaconDataLength(datap* parser);
 char*   BeaconDataExtract(datap* parser, int* size);
@@ -45,9 +45,9 @@ void BeaconAddMessage(LPCWSTR source, LPCWSTR message);
 void BeaconStrcatW(wchar_t *wstr1, wchar_t *wstr2);
 int BeaconWsprintf(wchar_t* dest, const wchar_t* format, ...);
 int BeaconSprintf(char* dest, const char* format, ...);
-int ParseInt32(PBYTE* args);
-char* ParseString(PBYTE* args);
-LPCWSTR ParseWideString(PBYTE* args);
+int BeaconParseInt32(PBYTE* args);
+char* BeaconParseString(PBYTE* args);
+LPCWSTR BeaconParseWideString(PBYTE* args);
 void BeaconCharToWideString(char* str, wchar_t* wideStr);
 
 PMESSAGE_QUEUE BeaconCreateMessageQueue();
