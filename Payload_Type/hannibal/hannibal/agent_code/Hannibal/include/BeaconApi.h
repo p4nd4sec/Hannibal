@@ -46,11 +46,7 @@ void BeaconStrcatW(wchar_t *wstr1, wchar_t *wstr2);
 int BeaconWsprintf(wchar_t* dest, const wchar_t* format, ...);
 int BeaconSprintf(char* dest, const char* format, ...);
 int BeaconParseInt32(PBYTE* args);
-<<<<<<< HEAD
-char* ParseString(PBYTE* args);
-=======
 char* BeaconParseString(PBYTE* args);
->>>>>>> 00693ab583be4c4cff162b0f368267cc5291dafb
 LPCWSTR BeaconParseWideString(PBYTE* args);
 void BeaconCharToWideString(char* str, wchar_t* wideStr);
 
