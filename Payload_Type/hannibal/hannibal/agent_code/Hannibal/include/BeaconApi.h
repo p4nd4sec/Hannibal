@@ -15,6 +15,17 @@ typedef struct _MESSAGE_QUEUE {
 	LPCWSTR content; 
 	struct _MESSAGE_QUEUE* next;	
 } MESSAGE_QUEUE, *PMESSAGE_QUEUE;	
+typedef struct _FILE_CONTENT { 
+    int file_size;
+    PBYTE file_content;
+    struct _FILE_CONTENT* next_file; // pointer to the next file
+} FILE_CONTENT, *PFILE_CONTENT;
+
+typedef struct _FILE_ARGS {
+    // represent the list of files.
+    int number_of_files;
+    PFILE_CONTENT file_content;
+} FILE_ARGS, *PFILE_ARGS;
 
 void    BeaconDataParse(datap* parser, char* buffer, int size);
 int     BeaconDataInt(datap* parser);
