@@ -76,7 +76,7 @@ class ExecuteBofArguments(TaskArguments):
                 display_name="Arguments",
                 type=ParameterType.TypedArray,
                 default_value=[],
-                choices=["int32", "string", "wchar"], 
+                choices=["int32", "wchar"], 
                 description="""Arguments to pass to the BoF via the following way:
                 -i:123 or int32:123
                 -z:hello or string:hello
