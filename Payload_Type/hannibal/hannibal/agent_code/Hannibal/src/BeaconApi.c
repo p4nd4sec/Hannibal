@@ -577,7 +577,7 @@ int BeaconSprintf(char* dest, const char* format, ...) {
     return chars_written;
 }
 
-int ParseInt32(PBYTE* args) {
+int BeaconParseInt32(PBYTE* args) {
     int value = 0;
     memcpy(&value, *args, sizeof(int));
     *args += sizeof(int);
@@ -601,7 +601,7 @@ char* ParseString(PBYTE* args) {
     return string;
 }
 
-LPCWSTR ParseWideString(PBYTE* args) {
+LPCWSTR BeaconParseWideString(PBYTE* args) {
     int length = 0;
     PWCHAR current = (PWCHAR)*args;
     
