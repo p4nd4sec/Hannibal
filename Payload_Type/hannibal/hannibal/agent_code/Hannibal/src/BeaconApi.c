@@ -89,7 +89,6 @@ void BeaconPrintf(DWORD64 pszDest, wchar_t* pszFormat, ...) {
         if (*pszFormat == L'%') {
             pszFormat++;
             
-            // Kiểm tra prefix 'l' (cho long)
             BOOL isLong = FALSE;
             if (*pszFormat == L'l') {
                 isLong = TRUE;
@@ -180,14 +179,11 @@ void BeaconPrintf(DWORD64 pszDest, wchar_t* pszFormat, ...) {
                     PVOID ptr = va_arg(args, PVOID);
                     ULONG_PTR value = (ULONG_PTR)ptr;
                     
-                    // Thêm tiền tố "0x"
                     *pszEnd++ = L'0';
                     *pszEnd++ = L'x';
                     
-                    // Xác định số bit của con trỏ (32 hoặc 64-bit)
                     int numHexDigits = sizeof(PVOID) * 2;
                     
-                    // In tất cả các chữ số hex, kể cả số 0 ở đầu
                     for (int i = numHexDigits - 1; i >= 0; i--) {
                         int digit = (value >> (i * 4)) & 0xF;
                         *pszEnd++ = hexChars[digit];
@@ -218,19 +214,15 @@ void BeaconPrintf(DWORD64 pszDest, wchar_t* pszFormat, ...) {
                 
                 case L'f':
                 case L'g': {
-                    // Xử lý đơn giản số thực dạng "float" và "double"
                     double value = va_arg(args, double);
                     
-                    // Xử lý dấu
                     if (value < 0) {
                         *pszEnd++ = L'-';
                         value = -value;
                     }
                     
-                    // Lấy phần nguyên
                     ULONG64 intPart = (ULONG64)value;
                     
-                    // Xử lý phần nguyên
                     WCHAR intDigits[32];
                     int intDigitCount = 0;
                     
@@ -243,12 +235,10 @@ void BeaconPrintf(DWORD64 pszDest, wchar_t* pszFormat, ...) {
                         }
                     }
                     
-                    // In phần nguyên (đảo ngược)
                     for (int i = intDigitCount - 1; i >= 0; i--) {
                         *pszEnd++ = intDigits[i];
                     }
                     
-                    // Lấy phần thập phân (giới hạn 6 chữ số thập phân)
                     value -= (ULONG64)value;
                     if (value > 0) {
                         *pszEnd++ = L'.';
@@ -259,7 +249,6 @@ void BeaconPrintf(DWORD64 pszDest, wchar_t* pszFormat, ...) {
                             *pszEnd++ = digit + L'0';
                             value -= digit;
                             
-                            // Dừng lại nếu phần thập phân là 0
                             if (value < 0.000001)
                                 break;
                         }
@@ -274,7 +263,6 @@ void BeaconPrintf(DWORD64 pszDest, wchar_t* pszFormat, ...) {
                             *pszEnd++ = *str++;
                         }
                     } else {
-                        // Xử lý chuỗi NULL
                         LPCWSTR nullStr = L"(null)";
                         while (*nullStr != L'\0') {
                             *pszEnd++ = *nullStr++;
@@ -295,7 +283,6 @@ void BeaconPrintf(DWORD64 pszDest, wchar_t* pszFormat, ...) {
                 }
                 
                 default:
-                    // Giữ nguyên các định dạng không hỗ trợ
                     *pszEnd++ = L'%';
                     if (isLong)
                         *pszEnd++ = L'l';
