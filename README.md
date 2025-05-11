@@ -62,6 +62,7 @@ sudo -E ./mythic-cli install github https://gitlab-red.ecq.local.com/son.nguyen/
 | whoami         | `whoami`                                                                                                                 | Return current user and domain.                                                                         |
 | upload         | `upload <modal>`                                                                                                         | Provides a modal to upload a file the agent. Needs full path plus filename. Uploads in chunks.          |
 | download       | `download [path]`                                                                                                        | Downloads a file from agent. Downloads in chunks.                                                       |
+| execute_bof    | `execute_bof`                                                |                                                          Execute a Beacon Object File (BOF), detail documentation at the agent documentation or [here](./documentation-payload/hannibal/_index.md) | 
 
 
 ## Supported C2 Profiles

