@@ -1,7 +1,7 @@
 #include "BeaconApi.h"
 
 
-void BeaconDataParse(datap* parser, char* buffer, int size) {
+SECTION_CODE void BeaconDataParse(datap* parser, char* buffer, int size) {
     if (parser == NULL) {
         return;
     }
@@ -13,7 +13,7 @@ void BeaconDataParse(datap* parser, char* buffer, int size) {
     parser->buffer += 4;
 }
 
-int BeaconDataInt32(datap* parser) {
+SECTION_CODE int BeaconDataInt32(datap* parser) {
     int fourbyteint = 0;
     if (parser->length < 4) {
         return 0;
@@ -24,7 +24,7 @@ int BeaconDataInt32(datap* parser) {
     return (int)fourbyteint;
 }
 
-short BeaconDataShort(datap* parser) {
+SECTION_CODE short BeaconDataShort(datap* parser) {
     short retvalue = 0;
     if (parser->length < 2) {
         return 0;
@@ -36,11 +36,11 @@ short BeaconDataShort(datap* parser) {
 
 }
 
-int BeaconDataLength(datap* parser) {
+SECTION_CODE int BeaconDataLength(datap* parser) {
     return parser->length;
 }
 
-char* BeaconDataExtract(datap* parser, int* size) {
+SECTION_CODE char* BeaconDataExtract(datap* parser, int* size) {
     int   length  = 0;
     char* outdata = NULL;
 
@@ -67,7 +67,7 @@ char* BeaconDataExtract(datap* parser, int* size) {
     return outdata;
 }
 
-void BeaconOutput(DWORD64 type, char* data, int len) {
+SECTION_CODE void BeaconOutput(DWORD64 type, char* data, int len) {
     // Output data to the controller
     int a = 0;
     for (int i = 0; i < 10; i++) {
@@ -77,7 +77,7 @@ void BeaconOutput(DWORD64 type, char* data, int len) {
     return;
 }
 
-void BeaconPrintf(DWORD64 pszDest, wchar_t* pszFormat, ...) {
+SECTION_CODE void BeaconPrintf(DWORD64 pszDest, wchar_t* pszFormat, ...) {
     va_list args;
     va_start(args, pszFormat);
     
@@ -303,7 +303,7 @@ void BeaconPrintf(DWORD64 pszDest, wchar_t* pszFormat, ...) {
     return;
 }
 
-int BeaconWsprintf(wchar_t* dest, const wchar_t* format, ...) {
+SECTION_CODE int BeaconWsprintf(wchar_t* dest, const wchar_t* format, ...) {
     wchar_t* d = dest;
     const wchar_t* f = format;
     va_list args;
@@ -428,7 +428,7 @@ int BeaconWsprintf(wchar_t* dest, const wchar_t* format, ...) {
     return chars_written;
 }
 
-void BeaconStrcatW(wchar_t *wstr1, wchar_t *wstr2)
+SECTION_CODE void BeaconStrcatW(wchar_t *wstr1, wchar_t *wstr2)
 {
     // Find the end of the first wide string
     wchar_t *end = wstr1;
@@ -447,13 +447,13 @@ void BeaconStrcatW(wchar_t *wstr1, wchar_t *wstr2)
     *end = L'\0';
 }
 
-void BeaconAddMessage(LPCWSTR source_message, LPCWSTR new_message) {
+SECTION_CODE void BeaconAddMessage(LPCWSTR source_message, LPCWSTR new_message) {
     // Append new_message to source_message
     BeaconStrcatW(source_message, new_message);
     return;
 }
 
-int BeaconSprintf(char* dest, const char* format, ...) {
+SECTION_CODE int BeaconSprintf(char* dest, const char* format, ...) {
     char* d = dest;
     const char* f = format;
     va_list args;
@@ -564,7 +564,7 @@ int BeaconSprintf(char* dest, const char* format, ...) {
     return chars_written;
 }
 
-int BeaconParseInt32(PBYTE* args) {
+SECTION_CODE int BeaconParseInt32(PBYTE* args) {
     int value = 0;
     memcpy(&value, *args, sizeof(int));
     *args += sizeof(int);
@@ -573,7 +573,7 @@ int BeaconParseInt32(PBYTE* args) {
 
 #pragma GCC push_options
 #pragma GCC optimize ("O0")
-char* BeaconParseString(PBYTE* args) {
+SECTION_CODE char* BeaconParseString(PBYTE* args) {
     int length = 0;
     PBYTE current = *args;
     
@@ -588,7 +588,7 @@ char* BeaconParseString(PBYTE* args) {
     return string;
 }
 
-LPCWSTR BeaconParseWideString(PBYTE* args) {
+SECTION_CODE LPCWSTR BeaconParseWideString(PBYTE* args) {
     int length = 0;
     PWCHAR current = (PWCHAR)*args;
     
@@ -602,7 +602,7 @@ LPCWSTR BeaconParseWideString(PBYTE* args) {
     return string;
 }
 
-void BeaconCharToWideString(char* str, wchar_t* wideStr) {
+SECTION_CODE void BeaconCharToWideString(char* str, wchar_t* wideStr) {
     if (str == NULL || wideStr == NULL) {
         return; // Invalid input
     }

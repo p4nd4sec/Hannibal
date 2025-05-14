@@ -27,11 +27,11 @@ typedef struct _MESSAGE_QUEUE {
 //     PFILE_CONTENT file_content;
 // } FILE_ARGS, *PFILE_ARGS;
 
-void    BeaconDataParse(datap* parser, char* buffer, int size);
-int     BeaconDataInt32(datap* parser);
-short   BeaconDataShort(datap* parser);
-int     BeaconDataLength(datap* parser);
-char*   BeaconDataExtract(datap* parser, int* size);
+SECTION_CODE void    BeaconDataParse(datap* parser, char* buffer, int size);
+SECTION_CODE int     BeaconDataInt32(datap* parser);
+SECTION_CODE short   BeaconDataShort(datap* parser);
+SECTION_CODE int     BeaconDataLength(datap* parser);
+SECTION_CODE char*   BeaconDataExtract(datap* parser, int* size);
 
 /* Output Functions */
 #define CALLBACK_OUTPUT      0x0
@@ -39,18 +39,17 @@ char*   BeaconDataExtract(datap* parser, int* size);
 #define CALLBACK_OUTPUT_UTF8 0x20
 #define CALLBACK_ERROR       0x0d
 
-void BeaconOutput(DWORD64 type, char* data, int len);
-void BeaconPrintf(DWORD64 pszDest, wchar_t* pszFormat, ...);
-void BeaconAddMessage(LPCWSTR source, LPCWSTR message);
-void BeaconStrcatW(wchar_t *wstr1, wchar_t *wstr2);
-int BeaconWsprintf(wchar_t* dest, const wchar_t* format, ...);
-int BeaconSprintf(char* dest, const char* format, ...);
-int BeaconParseInt32(PBYTE* args);
-char* BeaconParseString(PBYTE* args);
-LPCWSTR BeaconParseWideString(PBYTE* args);
-void BeaconCharToWideString(char* str, wchar_t* wideStr);
-
-PMESSAGE_QUEUE BeaconCreateMessageQueue();
-BOOL BeaconAddMessageToQueue(PMESSAGE_QUEUE root, LPCWSTR message);
-BOOL BeaconCleanUpMessageQueue(PMESSAGE_QUEUE root);
-BOOL BeaconSendAllMessages(PMESSAGE_QUEUE root, LPCSTR task_uuid);
+SECTION_CODE void BeaconOutput(DWORD64 type, char* data, int len);
+SECTION_CODE void BeaconPrintf(DWORD64 pszDest, wchar_t* pszFormat, ...);
+SECTION_CODE void BeaconAddMessage(LPCWSTR source, LPCWSTR message);
+SECTION_CODE void BeaconStrcatW(wchar_t *wstr1, wchar_t *wstr2);
+SECTION_CODE int BeaconWsprintf(wchar_t* dest, const wchar_t* format, ...);
+SECTION_CODE int BeaconSprintf(char* dest, const char* format, ...);
+SECTION_CODE int BeaconParseInt32(PBYTE* args);
+SECTION_CODE char* BeaconParseString(PBYTE* args);
+SECTION_CODE LPCWSTR BeaconParseWideString(PBYTE* args);
+SECTION_CODE void BeaconCharToWideString(char* str, wchar_t* wideStr);
+SECTION_CODE PMESSAGE_QUEUE BeaconCreateMessageQueue();
+SECTION_CODE BOOL BeaconAddMessageToQueue(PMESSAGE_QUEUE root, LPCWSTR message);
+SECTION_CODE BOOL BeaconCleanUpMessageQueue(PMESSAGE_QUEUE root);
+SECTION_CODE BOOL BeaconSendAllMessages(PMESSAGE_QUEUE root, LPCSTR task_uuid);
